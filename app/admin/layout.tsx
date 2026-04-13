@@ -12,6 +12,7 @@
 // ============================================================
 import type { Metadata } from 'next'
 import { Sidebar } from '@/components/shared/Sidebar'
+import { ProtectedRoute } from '@/components/shared/ProtectedRoute'
 
 export const metadata: Metadata = {
   title: 'Panel Admin — SimulaFinance',
@@ -19,13 +20,15 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 bg-gray-50 overflow-auto">
-        <div className="p-6 max-w-7xl mx-auto">
-          {children}
-        </div>
-      </main>
-    </div>
+    <ProtectedRoute rolRequerido="admin">
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <main className="flex-1 bg-gray-50 overflow-auto">
+          <div className="p-6 max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+    </ProtectedRoute>
   )
 }

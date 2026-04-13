@@ -107,6 +107,21 @@ export function DocumentUploader({
     }
   }
 
+  const handleClear = async (reqId: string, path: string) => {
+    try {
+      // Opcional: eliminar de storage real
+      // await deleteDocumento('solicitudes-docs', path)
+
+      setUploads(prev => ({
+        ...prev,
+        [reqId]: { file: null, path: null, status: 'idle', progress: 0 }
+      }))
+      toast.info('Archivo removido')
+    } catch (err) {
+      toast.error('Error al remover archivo')
+    }
+  }
+
   const allRequiredUploaded = requisitos
     .filter(req => req.obligatorio)
     .every(req => uploads[req.id]?.status === 'success')
@@ -162,9 +177,17 @@ export function DocumentUploader({
                 </div>
                 
                 {uploads[req.id]?.status === 'success' ? (
-                  <Badge variant="outline" className="bg-white text-green-600 border-green-200">
-                    <CheckCircle2 className="size-3 mr-1" /> Listo
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-white text-green-600 border-green-200">
+                      <CheckCircle2 className="size-3 mr-1" /> Listo
+                    </Badge>
+                    <button 
+                      onClick={() => handleClear(req.id, uploads[req.id].path!)}
+                      className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
                 ) : (
                   <Badge variant="secondary" className="bg-gray-100 text-gray-500">Pendiente</Badge>
                 )}

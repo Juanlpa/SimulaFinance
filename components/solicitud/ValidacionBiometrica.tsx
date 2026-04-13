@@ -175,6 +175,20 @@ export function ValidacionBiometrica({
     return () => stopCamera()
   }, [])
 
+  if (!modelsLoaded && !errorHeader) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4 animate-pulse">
+        <div className="bg-gray-100 p-8 rounded-full">
+          <Loader2 className="size-10 text-gray-400 animate-spin" />
+        </div>
+        <div className="text-center space-y-1">
+          <p className="font-medium text-gray-900">Preparando Inteligencia Artificial</p>
+          <p className="text-sm text-gray-500">Cargando modelos de reconocimiento facial...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (errorHeader) {
     return (
       <Alert variant="destructive">

@@ -25,10 +25,29 @@ export default async function HomePage() {
 
   try {
     const supabase = await createClient()
+    const { data: { session } } = await supabase.auth.getSession()
+
+    // Redirección inteligente si ya está logueado
+    if (session) {
+      const { data: perfil } = await supabase
+        .from('usuarios')
+        .select('rol')
+        .eq('id', session.user.id)
+        .single()
+      
+      if (perfil?.rol === 'admin') {
+        const { redirect } = await import('next/navigation')
+        redirect('/admin/dashboard')
+      } else {
+        const { redirect } = await import('next/navigation')
+        redirect('/cliente/dashboard')
+      }
+    }
+
     const { data } = await supabase.from('instituciones').select('*').limit(1).single()
     institucion = data ?? null
   } catch {
-    // Sin configuración — modo demo
+    // Sin configuración o error de sesión — modo demo o continuar
   }
 
   const nombre = institucion?.nombre ?? 'SimulaFinance'

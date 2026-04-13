@@ -5,6 +5,7 @@
 // Valida tasa vs. tasa máxima BCE del segmento seleccionado.
 // ============================================================
 'use client'
+import React from 'react'
 
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -342,8 +343,8 @@ export default function TiposCreditoPage() {
                 const isExpanded = expandido === tipo.id
                 const subtipos = tipo.subtipos_credito ?? []
                 return (
-                  <>
-                    <TableRow key={tipo.id} className="cursor-pointer hover:bg-gray-50/80" onClick={() => setExpandido(isExpanded ? null : tipo.id)}>
+                  <React.Fragment key={tipo.id}>
+                    <TableRow className="cursor-pointer hover:bg-gray-50/80" onClick={() => setExpandido(isExpanded ? null : tipo.id)}>
                       <TableCell>
                         {isExpanded ? <ChevronDown className="size-4 text-gray-400" /> : <ChevronRight className="size-4 text-gray-400" />}
                       </TableCell>
@@ -424,7 +425,7 @@ export default function TiposCreditoPage() {
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </React.Fragment>
                 )
               })}
             </TableBody>

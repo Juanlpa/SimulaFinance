@@ -3,10 +3,9 @@
 // ============================================================
 'use client'
 
-import { useState, useEffect, Suspense, useCallback } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { getDocumentoUrl } from '@/lib/supabase/storage'
 import { Progress } from '@/components/ui/progress'
 import { toast } from 'sonner'
 
@@ -40,7 +39,7 @@ function SolicitudCreditoContent() {
   const [solicitud, setSolicitud] = useState<any>(null)
   const [simulacion, setSimulacion] = useState<any>(null)
   const [usuario, setUsuario] = useState<any>(null)
-  const [cedulaUrlFirmada, setCedulaUrlFirmada] = useState<string | null>(null)
+  const [cedulaUrlLocal, setCedulaUrlLocal] = useState<string | null>(null)
 
   // 1. Cargar datos iniciales
   useEffect(() => {
@@ -153,24 +152,22 @@ function SolicitudCreditoContent() {
   }
 
   // 4. Guardar documentos (Step 3)
-  const handlePaso3 = async (docsMapa: Record<string, string>) => {
+  const handlePaso3 = async (docsMapa: Record<string, string>, localUrls: Record<string, string>) => {
     setProcesando(true)
     const supabase = createClient()
 
     try {
       const cedulaPath = Object.values(docsMapa).find(p => p.includes('cedula')) || null
-      
+
       await supabase.from('solicitudes_credito').update({
         cedula_url: cedulaPath,
         documentos_adicionales_json: docsMapa,
         estado: 'biometria'
       }).eq('id', solicitud.id)
 
-      // Obtener URL firmada para la biometría
-      if (cedulaPath) {
-        const url = await getDocumentoUrl('solicitudes-docs', cedulaPath)
-        setCedulaUrlFirmada(url)
-      }
+      // Usar URL local del archivo (object URL) para face-api — evita CORS
+      const cedulaLocal = Object.entries(localUrls).find(([k]) => k.toLowerCase().includes('céd') || k.toLowerCase().includes('cedula'))
+      setCedulaUrlLocal(cedulaLocal?.[1] ?? null)
 
       setPaso(4)
     } catch (err) {
@@ -181,16 +178,21 @@ function SolicitudCreditoContent() {
     }
   }
 
-  // 5. Selfie (Step 4)
+  // 5. Selfie (Step 4) — usa /api/upload para evitar restricciones RLS
   const handlePaso4 = async (selfieBlob: Blob) => {
     setProcesando(true)
-    const supabase = createClient()
 
     try {
       const fileName = `${solicitud.id}/selfie.jpg`
-      const { error: upErr } = await supabase.storage.from('solicitudes-docs').upload(fileName, selfieBlob, { upsert: true })
-      if (upErr) throw upErr
+      const selfieFile = new File([selfieBlob], 'selfie.jpg', { type: 'image/jpeg' })
+      const form = new FormData()
+      form.append('file', selfieFile)
+      form.append('bucket', 'solicitudes-docs')
+      form.append('path', fileName)
+      const res = await fetch('/api/upload', { method: 'POST', body: form })
+      if (!res.ok) throw new Error((await res.json()).error)
 
+      const supabase = createClient()
       await supabase.from('solicitudes_credito').update({
         selfie_url: fileName,
         biometria_validada: true,
@@ -223,6 +225,31 @@ function SolicitudCreditoContent() {
       <div className="flex flex-col items-center justify-center py-40 gap-4">
         <Loader2 className="size-10 animate-spin text-gray-300" />
         <p className="text-gray-500 animate-pulse">Iniciando proceso de solicitud...</p>
+      </div>
+    )
+  }
+
+  // Sin simulación previa → mostrar alerta prominente
+  if (!simulacion) {
+    return (
+      <div className="max-w-lg mx-auto py-20 text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto">
+          <ChevronRight className="size-8 text-amber-500" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Primero debes simular tu crédito</h2>
+          <p className="text-gray-500 text-sm">
+            Para iniciar una solicitud formal, debes primero calcular tu tabla de amortización
+            en el simulador y hacer clic en <strong>"Me interesa →"</strong>.
+          </p>
+        </div>
+        <a
+          href="/cliente/simulador-credito"
+          className="inline-block px-6 py-3 rounded-lg text-white font-semibold text-sm"
+          style={{ backgroundColor: 'var(--color-inst-primary)' }}
+        >
+          Ir al Simulador de Crédito
+        </a>
       </div>
     )
   }
@@ -291,7 +318,7 @@ function SolicitudCreditoContent() {
         )}
         {paso === 4 && (
           <ValidacionBiometrica 
-            cedulaUrl={cedulaUrlFirmada}
+            cedulaUrl={cedulaUrlLocal}
             onBack={() => setPaso(3)}
             onNext={handlePaso4}
             loading={procesando}

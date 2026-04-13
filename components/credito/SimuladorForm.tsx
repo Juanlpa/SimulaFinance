@@ -48,7 +48,9 @@ export function SimuladorForm({ onCalcular, loading }: SimuladorFormProps) {
 
   // Selecciones
   const [tipoId, setTipoId] = useState('')
+  const [tipoNombre, setTipoNombre] = useState('')
   const [subtipoId, setSubtipoId] = useState('')
+  const [subtipoNombre, setSubtipoNombre] = useState('')
   const [monto, setMonto] = useState<number>(0)
   const [valorBien, setValorBien] = useState<number>(0)
   const [plazoMeses, setPlazoMeses] = useState<number>(0)
@@ -97,12 +99,16 @@ export function SimuladorForm({ onCalcular, loading }: SimuladorFormProps) {
   const handleTipoChange = useCallback(async (id: string) => {
     setTipoId(id)
     setSubtipoId('')
+    setSubtipoNombre('')
     setMonto(0)
     setPlazoMeses(0)
     setSubtipos([])
 
     const tipo = tipos.find((t) => t.id === id)
-    if (tipo) setTasaAnual(tipo.tasa_interes_anual)
+    if (tipo) {
+      setTasaAnual(tipo.tasa_interes_anual)
+      setTipoNombre(tipo.nombre)
+    }
 
     setCargandoSubtipos(true)
     const supabase = createClient()
@@ -141,6 +147,7 @@ export function SimuladorForm({ onCalcular, loading }: SimuladorFormProps) {
     setSubtipoId(id)
     const sub = subtipos.find((s) => s.id === id)
     if (sub) {
+      setSubtipoNombre(sub.nombre)
       setMontoMin(sub.monto_min)
       setMontoMax(sub.monto_max)
       setPlazoMin(sub.plazo_min_meses)
@@ -189,7 +196,9 @@ export function SimuladorForm({ onCalcular, loading }: SimuladorFormProps) {
         ) : (
           <Select value={tipoId} onValueChange={(v) => handleTipoChange(v ?? '')}>
             <SelectTrigger className="h-10">
-              <SelectValue placeholder="Seleccionar tipo" />
+              <SelectValue placeholder="Seleccionar tipo">
+                {tipoNombre || undefined}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {tipos.map((t) => (
@@ -218,7 +227,9 @@ export function SimuladorForm({ onCalcular, loading }: SimuladorFormProps) {
           ) : (
             <Select value={subtipoId} onValueChange={(v) => handleSubtipoChange(v ?? '')}>
               <SelectTrigger className="h-10">
-                <SelectValue placeholder="Seleccionar subtipo" />
+                <SelectValue placeholder="Seleccionar subtipo">
+                  {subtipoNombre || undefined}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {subtipos.map((s) => (

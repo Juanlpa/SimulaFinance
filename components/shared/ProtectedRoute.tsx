@@ -1,13 +1,13 @@
 'use client'
 // ============================================================
 // SimulaFinance — ProtectedRoute (client-side guard)
-// Para uso en Client Components que necesitan verificar rol
-// La protección principal ocurre en middleware.ts (server-side)
 // ============================================================
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { RolUsuario } from '@/types'
+import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -20,42 +20,89 @@ export function ProtectedRoute({ children, rolRequerido }: ProtectedRouteProps) 
   const [permitido, setPermitido] = useState(false)
 
   useEffect(() => {
+    let mounted = true
+
     async function verificar() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      try {
+        const supabase = createClient()
+        
+        // 1. Obtener usuario de Auth
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      if (rolRequerido) {
-        const { data: perfil } = await supabase
-          .from('usuarios')
-          .select('rol')
-          .eq('id', user.id)
-          .single()
-
-        if (perfil?.rol !== rolRequerido && !(rolRequerido === 'cliente' && perfil?.rol === 'admin')) {
-          router.push(perfil?.rol === 'admin' ? '/admin/dashboard' : '/cliente/dashboard')
+        if (authError || !user) {
+          if (mounted) {
+            router.push('/login')
+          }
           return
         }
-      }
 
-      setPermitido(true)
-      setVerificando(false)
+        // 2. Si se requiere rol, verificar perfil en DB
+        if (rolRequerido) {
+          const { data: perfil, error: dbError } = await supabase
+            .from('usuarios')
+            .select('rol')
+            .eq('id', user.id)
+            .single()
+
+          if (dbError) {
+            console.error('Error al obtener perfil:', dbError)
+            
+            // Caso especial: Recursión RLS o error de política
+            if (dbError.code === '42P17') {
+              toast.error('Error de base de datos (recursión RLS). Por favor, contacte soporte.')
+            } else {
+              toast.error('Error al verificar permisos del usuario.')
+            }
+            
+            if (mounted) router.push('/login')
+            return
+          }
+
+          if (!perfil) {
+            toast.error('No se encontró un perfil para este usuario.')
+            if (mounted) router.push('/login')
+            return
+          }
+
+          // Validación de jerarquía (admin puede entrar a todo)
+          const esAdmin = perfil.rol === 'admin'
+          const esClienteAutoalizado = perfil.rol === rolRequerido || (rolRequerido === 'cliente' && esAdmin)
+
+          if (!esClienteAutoalizado) {
+            toast.warning('No tienes permiso para acceder a esta sección.')
+            if (mounted) {
+              router.push(esAdmin ? '/admin/dashboard' : '/cliente/dashboard')
+            }
+            return
+          }
+        }
+
+        if (mounted) {
+          setPermitido(true)
+        }
+      } catch (err) {
+        console.error('Error fatal en ProtectedRoute:', err)
+        toast.error('Ocurrió un error inesperado al verificar la sesión.')
+        if (mounted) router.push('/login')
+      } finally {
+        if (mounted) {
+          setVerificando(false)
+        }
+      }
     }
 
     verificar()
+
+    return () => {
+      mounted = false
+    }
   }, [router, rolRequerido])
 
   if (verificando) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Verificando sesión...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <Loader2 className="size-10 text-gray-400 animate-spin" />
+        <p className="text-sm text-gray-500 font-medium">Verificando sesión...</p>
       </div>
     )
   }

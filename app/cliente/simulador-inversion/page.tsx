@@ -311,7 +311,7 @@ export default function SimuladorInversionPage() {
                 <Button
                   className="text-white cursor-pointer"
                   style={{ backgroundColor: 'var(--color-inst-primary)' }}
-                  onClick={() => window.location.href = '/cliente/solicitud-inversion'}
+                  onClick={() => window.location.href = `/cliente/solicitud-inversion?producto=${productoId}&monto=${monto}&plazo=${plazoDias}`}
                 >
                   Me interesa
                   <ArrowRight className="size-4" />

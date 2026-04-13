@@ -165,8 +165,10 @@ export default function AdminDashboardPage() {
   const m = metricas
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <h1 className="text-3xl font-extrabold tracking-tight mb-6">
+        Panel General de <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, var(--color-inst-primary), var(--color-inst-accent))' }}>Administración</span>
+      </h1>
 
       {/* Métricas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -289,7 +291,6 @@ export default function AdminDashboardPage() {
   )
 }
 
-// ─── Sub-componente MetricaCard ──────────────────────────────
 function MetricaCard({
   icon,
   label,
@@ -302,14 +303,14 @@ function MetricaCard({
   color: string
 }) {
   return (
-    <Card>
-      <CardContent className="p-4 flex items-center gap-3">
-        <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}15` }}>
-          <span style={{ color }}>{icon}</span>
+    <Card className="hover:scale-[1.02] transition-transform duration-300 shadow-sm border border-gray-100/50">
+      <CardContent className="p-5 flex items-center gap-4">
+        <div className="p-3 rounded-2xl shadow-sm transition-colors duration-300" style={{ backgroundColor: `${color}15`, color: color }}>
+          {icon}
         </div>
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className="text-2xl font-bold text-gray-900">{valor}</p>
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-500 mb-0.5">{label}</p>
+          <p className="text-3xl font-extrabold tracking-tight text-gray-900">{valor}</p>
         </div>
       </CardContent>
     </Card>

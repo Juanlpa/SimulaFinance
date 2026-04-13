@@ -59,13 +59,14 @@ export default function SimuladorCreditoPage() {
             monto: p.monto,
             valor_bien: p.valorBien,
             plazo_meses: p.plazoMeses,
-            tasa_interes_anual: p.tasaAnual,
+            tasa_aplicada: p.tasaAnual,
             sistema_amortizacion: p.sistema,
             cuota_base: res.resumen.cuota_base_inicial,
             cuota_final: res.resumen.cuota_final,
             total_intereses: res.resumen.total_intereses,
-            total_cobros: res.resumen.total_cobros_adicionales,
-            costo_total: res.resumen.costo_total_credito,
+            total_a_pagar: res.resumen.costo_total_credito,
+            tabla_json: res.filas,
+            cobros_desglose_json: res.cobros_desglose,
           })
           .select('id')
           .single()

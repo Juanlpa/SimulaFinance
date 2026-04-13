@@ -110,14 +110,16 @@ export default function ClienteDashboardPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">
-        ¡Hola, {nombreUsuario}!
-      </h1>
-      <p className="text-gray-500 text-sm mb-8">¿Qué deseas hacer hoy?</p>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="mb-10">
+        <h1 className="text-3xl font-extrabold tracking-tight mb-2">
+          ¡Hola, <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, var(--color-inst-primary), var(--color-inst-accent))' }}>{nombreUsuario}</span>!
+        </h1>
+        <p className="text-gray-500 text-[15px]">Explora tus herramientas financieras y gestiona tus solicitudes en un solo lugar.</p>
+      </div>
 
       {/* Accesos rápidos */}
-      <div className="grid md:grid-cols-3 gap-4 mb-8">
+      <div className="grid md:grid-cols-3 gap-6 mb-10">
         <Link href="/cliente/simulador-credito" className="group">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-5">

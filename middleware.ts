@@ -15,7 +15,9 @@ export async function middleware(request: NextRequest) {
 
   // Rutas públicas que no requieren autenticación
   const rutasPublicas = ['/', '/login', '/registro']
-  const esRutaPublica = rutasPublicas.some((ruta) => pathname === ruta)
+  const esRutaPublica =
+    rutasPublicas.some((ruta) => pathname === ruta) ||
+    pathname.startsWith('/api/')
 
   // Si no hay usuario y la ruta requiere autenticación
   if (!user && !esRutaPublica) {

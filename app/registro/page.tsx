@@ -194,242 +194,259 @@ export default function RegistroPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 px-4 py-8">
-      {/* Fondo decorativo */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-[0.03]"
-        style={{
-          backgroundImage: `radial-gradient(circle at 20% 50%, var(--color-inst-primary) 0%, transparent 50%), radial-gradient(circle at 80% 50%, var(--color-inst-accent) 0%, transparent 50%)`,
-        }}
-      />
-
-      <Card className="w-full max-w-md relative z-10 shadow-lg border-0 ring-1 ring-black/5">
-        <CardHeader className="text-center pb-2">
-          {/* Logo institucional */}
-          <div className="flex justify-center mb-2">
-            {institucion?.logo_url ? (
-              <img
-                src={institucion.logo_url}
-                alt={logoNombre}
-                className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow-md"
-              />
-            ) : (
-              <div
-                className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md transition-transform hover:scale-105"
-                style={{ backgroundColor: 'var(--color-inst-primary)' }}
-              >
-                {logoInicial}
-              </div>
-            )}
+    <main className="min-h-screen flex w-full bg-white relative">
+      {/* Lado Izquierdo: Arte Visual / Brand */}
+      <div className="hidden lg:block relative w-0 flex-1 bg-gray-900 overflow-hidden">
+        {/* Fondo Base con gradiente dinámica */}
+        <div 
+          className="absolute inset-0 opacity-90 transition-colors duration-1000"
+          style={{ 
+             background: `linear-gradient(135deg, var(--color-inst-secondary) 0%, var(--color-inst-primary) 100%)`
+          }}
+        />
+        
+        {/* Orbes decorativos estilo Glassmorphism */}
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full opacity-30 mix-blend-screen blur-[80px] bg-white animate-pulse" />
+        <div className="absolute bottom-[-10%] left-[10%] w-[50%] h-[50%] rounded-full opacity-20 mix-blend-screen blur-[100px] bg-blue-300 animate-pulse" style={{ animationDelay: '2s' }}/>
+        
+        <div className="absolute inset-0 flex flex-col justify-center px-16 xl:px-24 text-white z-10">
+          <div className="max-w-xl animate-in fade-in slide-in-from-left-8 duration-1000 delay-150 fill-mode-both">
+            <h1 className="text-4xl xl:text-5xl font-bold tracking-tight mb-6 leading-tight">
+              Tu futuro financiero comienza aquí.
+            </h1>
+            <p className="text-lg xl:text-xl text-white/80 mb-10 leading-relaxed font-light">
+              Únete a miles de usuarios que confían en nosotros para proyectar sus inversiones e hipotecas.
+            </p>
           </div>
-          <CardTitle className="text-xl font-bold text-gray-900">Crear cuenta</CardTitle>
-          <CardDescription className="text-gray-500">
-            Regístrate como cliente en {logoNombre}
-          </CardDescription>
-        </CardHeader>
+        </div>
+      </div>
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Alerta de error */}
-            {error && (
-              <Alert variant="destructive" className="animate-in fade-in-0 slide-in-from-top-1 duration-300">
-                <AlertCircle className="size-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {/* Nombre y Apellido */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="reg-nombre">Nombre</Label>
-                <Input
-                  id="reg-nombre"
-                  type="text"
-                  placeholder="Juan"
-                  value={nombre}
-                  onChange={(e) => {
-                    setNombre(e.target.value)
-                    if (fieldErrors.nombre) setFieldErrors((p) => ({ ...p, nombre: undefined }))
-                  }}
-                  required
-                  disabled={loading}
-                  className="h-10"
-                  aria-invalid={!!fieldErrors.nombre}
+      {/* Lado Derecho: Formulario */}
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:w-1/2 lg:px-20 xl:px-24 py-12 scrollbar-hide overflow-y-auto">
+        <div className="mx-auto w-full max-w-sm lg:w-[400px] animate-in fade-in slide-in-from-bottom-8 duration-700 pb-10">
+          <div>
+            <div className="flex items-center gap-3 mb-8">
+              {institucion?.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={institucion.logo_url}
+                  alt={logoNombre}
+                  className="h-10 w-auto rounded-lg object-contain shadow-sm"
                 />
-                {fieldErrors.nombre && (
-                  <p className="text-xs text-destructive mt-0.5">{fieldErrors.nombre}</p>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="reg-apellido">Apellido</Label>
-                <Input
-                  id="reg-apellido"
-                  type="text"
-                  placeholder="Pérez"
-                  value={apellido}
-                  onChange={(e) => {
-                    setApellido(e.target.value)
-                    if (fieldErrors.apellido) setFieldErrors((p) => ({ ...p, apellido: undefined }))
-                  }}
-                  required
-                  disabled={loading}
-                  className="h-10"
-                  aria-invalid={!!fieldErrors.apellido}
-                />
-                {fieldErrors.apellido && (
-                  <p className="text-xs text-destructive mt-0.5">{fieldErrors.apellido}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Email */}
-            <div className="space-y-1.5">
-              <Label htmlFor="reg-email">Correo electrónico</Label>
-              <Input
-                id="reg-email"
-                type="email"
-                placeholder="tu@email.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
-                }}
-                required
-                autoComplete="email"
-                disabled={loading}
-                className="h-10"
-                aria-invalid={!!fieldErrors.email}
-              />
-              {fieldErrors.email && (
-                <p className="text-xs text-destructive mt-0.5">{fieldErrors.email}</p>
-              )}
-            </div>
-
-            {/* Contraseña */}
-            <div className="space-y-1.5">
-              <Label htmlFor="reg-password">Contraseña</Label>
-              <div className="relative">
-                <Input
-                  id="reg-password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Mínimo 8 caracteres"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value)
-                    if (fieldErrors.password) setFieldErrors((p) => ({ ...p, password: undefined }))
-                  }}
-                  required
-                  autoComplete="new-password"
-                  disabled={loading}
-                  className="h-10 pr-10"
-                  aria-invalid={!!fieldErrors.password}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  tabIndex={-1}
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              ) : (
+                <div 
+                  className="size-10 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md"
+                  style={{ backgroundColor: 'var(--color-inst-primary)' }}
                 >
-                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              </div>
-              {/* Indicador de fuerza */}
-              {password && (
-                <div className="space-y-1">
-                  <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
-                      style={{ width: strength.width }}
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500">Fuerza: {strength.label}</p>
+                  {logoInicial}
                 </div>
               )}
-              {fieldErrors.password && (
-                <p className="text-xs text-destructive mt-0.5">{fieldErrors.password}</p>
-              )}
+              <span className="font-bold text-2xl tracking-tight text-gray-900">{logoNombre}</span>
             </div>
+            
+            <h2 className="mt-6 text-3xl font-extrabold text-gray-900 tracking-tight">
+              Crear cuenta
+            </h2>
+            <p className="mt-2 text-sm text-gray-500">
+              Ingresa tus datos para empezar a cotizar.
+            </p>
+          </div>
 
-            {/* Confirmar contraseña */}
-            <div className="space-y-1.5">
-              <Label htmlFor="reg-confirm">Confirmar contraseña</Label>
-              <div className="relative">
+          <div className="mt-8">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <Alert variant="destructive" className="animate-in fade-in zoom-in-95 duration-300 border-red-200 bg-red-50 text-red-800">
+                  <AlertCircle className="size-4" />
+                  <AlertDescription className="font-medium">{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {/* Nombre y Apellido */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="reg-nombre" className="text-gray-700">Nombre</Label>
+                  <Input
+                    id="reg-nombre"
+                    type="text"
+                    placeholder="Juan"
+                    value={nombre}
+                    onChange={(e) => {
+                      setNombre(e.target.value)
+                      if (fieldErrors.nombre) setFieldErrors((p) => ({ ...p, nombre: undefined }))
+                    }}
+                    required
+                    disabled={loading}
+                    className="h-11 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 shadow-sm"
+                    style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                    aria-invalid={!!fieldErrors.nombre}
+                  />
+                  {fieldErrors.nombre && (
+                    <p className="text-xs text-destructive mt-0.5">{fieldErrors.nombre}</p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="reg-apellido" className="text-gray-700">Apellido</Label>
+                  <Input
+                    id="reg-apellido"
+                    type="text"
+                    placeholder="Pérez"
+                    value={apellido}
+                    onChange={(e) => {
+                      setApellido(e.target.value)
+                      if (fieldErrors.apellido) setFieldErrors((p) => ({ ...p, apellido: undefined }))
+                    }}
+                    required
+                    disabled={loading}
+                    className="h-11 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 shadow-sm"
+                    style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                    aria-invalid={!!fieldErrors.apellido}
+                  />
+                  {fieldErrors.apellido && (
+                    <p className="text-xs text-destructive mt-0.5">{fieldErrors.apellido}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="space-y-1.5">
+                <Label htmlFor="reg-email" className="text-gray-700">Correo electrónico</Label>
                 <Input
-                  id="reg-confirm"
-                  type={showConfirm ? 'text' : 'password'}
-                  placeholder="Repite tu contraseña"
-                  value={confirmPassword}
+                  id="reg-email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={email}
                   onChange={(e) => {
-                    setConfirmPassword(e.target.value)
-                    if (fieldErrors.confirmPassword) setFieldErrors((p) => ({ ...p, confirmPassword: undefined }))
+                    setEmail(e.target.value)
+                    if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
                   }}
                   required
-                  autoComplete="new-password"
+                  autoComplete="email"
                   disabled={loading}
-                  className="h-10 pr-10"
-                  aria-invalid={!!fieldErrors.confirmPassword}
+                  className="h-11 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 shadow-sm"
+                  style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                  aria-invalid={!!fieldErrors.email}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  tabIndex={-1}
-                  aria-label={showConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                >
-                  {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
+                {fieldErrors.email && (
+                  <p className="text-xs text-destructive mt-0.5">{fieldErrors.email}</p>
+                )}
               </div>
-              {/* Indicador de coincidencia */}
-              {confirmPassword && (
-                <p className={`text-xs flex items-center gap-1 ${password === confirmPassword ? 'text-green-600' : 'text-red-500'}`}>
-                  {password === confirmPassword ? (
-                    <><CheckCircle2 className="size-3" /> Las contraseñas coinciden</>
-                  ) : (
-                    <><AlertCircle className="size-3" /> Las contraseñas no coinciden</>
-                  )}
-                </p>
-              )}
-              {fieldErrors.confirmPassword && !confirmPassword && (
-                <p className="text-xs text-destructive mt-0.5">{fieldErrors.confirmPassword}</p>
-              )}
+
+              {/* Contraseña */}
+              <div className="space-y-1.5">
+                <Label htmlFor="reg-password" className="text-gray-700">Contraseña</Label>
+                <div className="relative">
+                  <Input
+                    id="reg-password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Mínimo 8 caracteres"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      if (fieldErrors.password) setFieldErrors((p) => ({ ...p, password: undefined }))
+                    }}
+                    required
+                    autoComplete="new-password"
+                    disabled={loading}
+                    className="h-11 pr-10 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 shadow-sm"
+                    style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                    aria-invalid={!!fieldErrors.password}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
+                  </button>
+                </div>
+                {password && (
+                  <div className="space-y-1 pt-1 opacity-80">
+                    <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
+                        style={{ width: strength.width }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {fieldErrors.password && (
+                  <p className="text-xs text-destructive mt-0.5">{fieldErrors.password}</p>
+                )}
+              </div>
+
+              {/* Confirmar contraseña */}
+              <div className="space-y-1.5 pb-2">
+                <Label htmlFor="reg-confirm" className="text-gray-700">Confirmar contraseña</Label>
+                <div className="relative">
+                  <Input
+                    id="reg-confirm"
+                    type={showConfirm ? 'text' : 'password'}
+                    placeholder="Repite tu contraseña"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value)
+                      if (fieldErrors.confirmPassword) setFieldErrors((p) => ({ ...p, confirmPassword: undefined }))
+                    }}
+                    required
+                    autoComplete="new-password"
+                    disabled={loading}
+                    className="h-11 pr-10 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 shadow-sm"
+                    style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                    aria-invalid={!!fieldErrors.confirmPassword}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {showConfirm ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
+                  </button>
+                </div>
+                {confirmPassword && (
+                  <p className={`text-[11px] pt-1 flex items-center gap-1 font-medium ${password === confirmPassword ? 'text-green-600' : 'text-red-500'}`}>
+                    {password === confirmPassword ? (
+                      <><CheckCircle2 className="size-3" /> Coinciden</>
+                    ) : (
+                      <><AlertCircle className="size-3" /> No coinciden</>
+                    )}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 text-[15px] font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl rounded-lg group"
+                style={{ backgroundColor: 'var(--color-inst-primary)' }}
+              >
+                {loading ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : (
+                  <>
+                    Completar registro
+                    <UserPlus className="size-4 ml-2 opacity-70 group-hover:opacity-100 transition-all" />
+                  </>
+                )}
+              </Button>
+            </form>
+
+            <div className="mt-8 pt-6 border-t border-gray-100">
+              <p className="text-center text-sm text-gray-600">
+                ¿Ya tienes cuenta?{' '}
+                <Link
+                  href="/login"
+                  className="font-bold hover:underline transition-colors ml-1"
+                  style={{ color: 'var(--color-inst-primary)' }}
+                >
+                  Iniciar sesión
+                </Link>
+              </p>
             </div>
-
-            {/* Botón submit */}
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-10 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-md cursor-pointer"
-              style={{ backgroundColor: 'var(--color-inst-primary)' }}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Creando cuenta...
-                </>
-              ) : (
-                <>
-                  <UserPlus className="size-4" />
-                  Crear cuenta
-                </>
-              )}
-            </Button>
-          </form>
-
-          {/* Link a login */}
-          <p className="text-center text-sm text-gray-500 mt-6">
-            ¿Ya tienes cuenta?{' '}
-            <Link
-              href="/login"
-              className="font-semibold hover:underline transition-colors"
-              style={{ color: 'var(--color-inst-accent)' }}
-            >
-              Iniciar sesión
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      </div>
     </main>
   )
 }

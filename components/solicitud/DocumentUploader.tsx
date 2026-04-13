@@ -35,7 +35,7 @@ interface DocumentUploaderProps {
   solicitudId: string
   tipoCreditoId: string
   onBack: () => void
-  onNext: (documentos: Record<string, string>) => void
+  onNext: (paths: Record<string, string>, localUrls: Record<string, string>) => void
   loading?: boolean
 }
 
@@ -97,13 +97,14 @@ export function DocumentUploader({
         [reqId]: { ...prev[reqId], path, status: 'success', progress: 100 }
       }))
       toast.success(`${nombre} subido correctamente`)
-    } catch (error) {
+    } catch (error: any) {
       setUploads(prev => ({
         ...prev,
         [reqId]: { ...prev[reqId], status: 'error', progress: 0 }
       }))
-      toast.error(`Error al subir ${nombre}`)
-      console.error(error)
+      const msg = error?.message || 'Error desconocido'
+      toast.error(`Error al subir ${nombre}: ${msg}`)
+      console.error('Upload error:', error)
     }
   }
 
@@ -128,13 +129,18 @@ export function DocumentUploader({
 
   const handleContinue = () => {
     const docsMapa: Record<string, string> = {}
+    const localUrls: Record<string, string> = {}
     Object.keys(uploads).forEach(id => {
       if (uploads[id].path) {
         const req = requisitos.find(r => r.id === id)
-        docsMapa[req?.nombre || id] = uploads[id].path!
+        const key = req?.nombre || id
+        docsMapa[key] = uploads[id].path!
+        if (uploads[id].file) {
+          localUrls[key] = URL.createObjectURL(uploads[id].file!)
+        }
       }
     })
-    onNext(docsMapa)
+    onNext(docsMapa, localUrls)
   }
 
   if (fetching) {

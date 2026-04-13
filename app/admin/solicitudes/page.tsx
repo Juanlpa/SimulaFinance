@@ -10,165 +10,192 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { Loader2, Eye, CheckCircle, XCircle, FileText, TrendingUp } from 'lucide-react'
 
-import {
-  Loader2,
-  Eye,
-  CheckCircle,
-  XCircle,
-  FileText,
-  ExternalLink,
-} from 'lucide-react'
+// ─── Tipos ───────────────────────────────────────────────────
 
-// ─── Tipos internos ──────────────────────────────────────────
-interface SolicitudFila {
-  id: string
-  created_at: string
-  monto: number
-  plazo_meses: number
-  cuota_final: number
-  estado: string
-  observaciones_admin: string | null
-  usuario_nombre: string
-  usuario_cedula: string
-  tipo_credito_nombre: string
-  cedula_url: string | null
-  selfie_url: string | null
+interface SolCredito {
+  id: string; created_at: string; monto: number; plazo_meses: number
+  cuota_final: number; estado: string; observaciones_admin: string | null
+  usuario_nombre: string; usuario_cedula: string; tipo_credito_nombre: string
+  cedula_url: string | null; selfie_url: string | null
 }
 
-const ESTADOS = [
-  { value: 'todos', label: 'Todos' },
-  { value: 'pendiente', label: 'Pendiente' },
-  { value: 'documentos', label: 'Documentos' },
-  { value: 'en_revision', label: 'En revisión' },
-  { value: 'aprobada', label: 'Aprobada' },
-  { value: 'rechazada', label: 'Rechazada' },
-  { value: 'desembolsada', label: 'Desembolsada' },
-]
-
-const ESTADO_BADGES: Record<string, { label: string; color: string }> = {
-  pendiente: { label: 'Pendiente', color: 'bg-amber-100 text-amber-700' },
-  documentos: { label: 'Documentos', color: 'bg-blue-100 text-blue-700' },
-  en_revision: { label: 'En revisión', color: 'bg-purple-100 text-purple-700' },
-  aprobada: { label: 'Aprobada', color: 'bg-green-100 text-green-700' },
-  rechazada: { label: 'Rechazada', color: 'bg-red-100 text-red-700' },
-  desembolsada: { label: 'Desembolsada', color: 'bg-emerald-100 text-emerald-700' },
+interface SolInversion {
+  id: string; created_at: string; monto: number; plazo_dias: number
+  estado: string; usuario_nombre: string; usuario_cedula: string
+  producto_nombre: string; documento_identidad_url: string | null
+  selfie_url: string | null; biometria_validada: boolean
 }
+
+// ─── Constantes ──────────────────────────────────────────────
+
+const ESTADOS_CREDITO = ['todos','pendiente','documentos','biometria','en_revision','aprobada','rechazada','desembolsada']
+const ESTADOS_INVERSION = ['todos','pendiente','biometria','en_revision','aprobada','rechazada','activa','vencida']
+
+const BADGES: Record<string, string> = {
+  pendiente:    'bg-amber-100 text-amber-700',
+  documentos:   'bg-blue-100 text-blue-700',
+  biometria:    'bg-indigo-100 text-indigo-700',
+  en_revision:  'bg-purple-100 text-purple-700',
+  aprobada:     'bg-green-100 text-green-700',
+  rechazada:    'bg-red-100 text-red-700',
+  desembolsada: 'bg-emerald-100 text-emerald-700',
+  activa:       'bg-teal-100 text-teal-700',
+  vencida:      'bg-gray-100 text-gray-600',
+}
+
+const LABEL: Record<string, string> = {
+  todos: 'Todos', pendiente: 'Pendiente', documentos: 'Documentos', biometria: 'Biometría',
+  en_revision: 'En revisión', aprobada: 'Aprobada', rechazada: 'Rechazada',
+  desembolsada: 'Desembolsada', activa: 'Activa', vencida: 'Vencida',
+}
+
+// ─── Componente ───────────────────────────────────────────────
 
 export default function SolicitudesPage() {
-  const [solicitudes, setSolicitudes] = useState<SolicitudFila[]>([])
-  const [filtroEstado, setFiltroEstado] = useState('todos')
-  const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'credito' | 'inversion'>('credito')
+  const [loading, setLoading] = useState(true)
 
-  // Detail dialog
-  const [detalle, setDetalle] = useState<SolicitudFila | null>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  // Crédito
+  const [creditos, setCreditos] = useState<SolCredito[]>([])
+  const [filtroCredito, setFiltroCredito] = useState('todos')
+
+  // Inversión
+  const [inversiones, setInversiones] = useState<SolInversion[]>([])
+  const [filtroInversion, setFiltroInversion] = useState('todos')
+
+  // Dialog
+  const [dialogCredito, setDialogCredito] = useState<SolCredito | null>(null)
+  const [dialogInversion, setDialogInversion] = useState<SolInversion | null>(null)
   const [observaciones, setObservaciones] = useState('')
   const [guardando, setGuardando] = useState(false)
 
-  const cargarSolicitudes = useCallback(async () => {
+  // ── Cargar créditos ────────────────────────────────────────
+  const cargarCreditos = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
 
-    let query = supabase
+    let q = supabase
       .from('solicitudes_credito')
-      .select(`
-        id,
-        created_at,
-        monto,
-        plazo_meses,
-        cuota_final,
-        estado,
-        observaciones_admin,
-        cedula_url,
-        selfie_url,
-        usuarios!inner(nombre, apellido, cedula),
-        tipos_credito!inner(nombre)
-      `)
+      .select('id, created_at, monto, plazo_meses, cuota_final, estado, observaciones_admin, cedula_url, selfie_url, usuarios(nombre, apellido, cedula), tipos_credito(nombre)')
       .order('created_at', { ascending: false })
 
-    if (filtroEstado !== 'todos') {
-      query = query.eq('estado', filtroEstado)
-    }
+    if (filtroCredito !== 'todos') q = q.eq('estado', filtroCredito)
 
-    const { data } = await query
+    const { data, error } = await q
+    if (error) { console.error(error); toast.error('Error al cargar solicitudes de crédito') }
 
-    const filas: SolicitudFila[] = (data ?? []).map((s: Record<string, unknown>) => ({
-      id: s.id as string,
-      created_at: s.created_at as string,
-      monto: s.monto as number,
-      plazo_meses: s.plazo_meses as number,
-      cuota_final: s.cuota_final as number,
-      estado: s.estado as string,
-      observaciones_admin: s.observaciones_admin as string | null,
-      usuario_nombre: `${(s.usuarios as Record<string, string>)?.nombre ?? ''} ${(s.usuarios as Record<string, string>)?.apellido ?? ''}`.trim(),
-      usuario_cedula: (s.usuarios as Record<string, string>)?.cedula ?? '',
-      tipo_credito_nombre: (s.tipos_credito as Record<string, string>)?.nombre ?? '',
-      cedula_url: s.cedula_url as string | null,
-      selfie_url: s.selfie_url as string | null,
-    }))
-
-    setSolicitudes(filas)
+    setCreditos((data ?? []).map((s: any) => ({
+      id: s.id,
+      created_at: s.created_at,
+      monto: s.monto,
+      plazo_meses: s.plazo_meses,
+      cuota_final: s.cuota_final,
+      estado: s.estado,
+      observaciones_admin: s.observaciones_admin,
+      usuario_nombre: `${s.usuarios?.nombre ?? ''} ${s.usuarios?.apellido ?? ''}`.trim() || 'Sin nombre',
+      usuario_cedula: s.usuarios?.cedula ?? '—',
+      tipo_credito_nombre: s.tipos_credito?.nombre ?? '—',
+      cedula_url: s.cedula_url,
+      selfie_url: s.selfie_url,
+    })))
     setLoading(false)
-  }, [filtroEstado])
+  }, [filtroCredito])
 
-  useEffect(() => { cargarSolicitudes() }, [cargarSolicitudes])
-
-  const abrirDetalle = (sol: SolicitudFila) => {
-    setDetalle(sol)
-    setObservaciones(sol.observaciones_admin ?? '')
-    setDialogOpen(true)
-  }
-
-  const cambiarEstado = async (nuevoEstado: string) => {
-    if (!detalle) return
-    if (nuevoEstado === 'rechazada' && !observaciones.trim()) {
-      toast.error('Motivo de rechazo requerido.')
-      return
-    }
-
-    setGuardando(true)
+  // ── Cargar inversiones ─────────────────────────────────────
+  const cargarInversiones = useCallback(async () => {
+    setLoading(true)
     const supabase = createClient()
 
+    let q = supabase
+      .from('solicitudes_inversion')
+      .select('id, created_at, monto, plazo_dias, estado, documento_identidad_url, selfie_url, biometria_validada, usuarios(nombre, apellido, cedula), productos_inversion(nombre)')
+      .order('created_at', { ascending: false })
+
+    if (filtroInversion !== 'todos') q = q.eq('estado', filtroInversion)
+
+    const { data, error } = await q
+    if (error) { console.error(error); toast.error('Error al cargar solicitudes de inversión') }
+
+    setInversiones((data ?? []).map((s: any) => ({
+      id: s.id,
+      created_at: s.created_at,
+      monto: s.monto,
+      plazo_dias: s.plazo_dias,
+      estado: s.estado,
+      usuario_nombre: `${s.usuarios?.nombre ?? ''} ${s.usuarios?.apellido ?? ''}`.trim() || 'Sin nombre',
+      usuario_cedula: s.usuarios?.cedula ?? '—',
+      producto_nombre: s.productos_inversion?.nombre ?? '—',
+      documento_identidad_url: s.documento_identidad_url,
+      selfie_url: s.selfie_url,
+      biometria_validada: s.biometria_validada ?? false,
+    })))
+    setLoading(false)
+  }, [filtroInversion])
+
+  useEffect(() => {
+    if (tab === 'credito') cargarCreditos()
+    else cargarInversiones()
+  }, [tab, cargarCreditos, cargarInversiones])
+
+  // ── Acciones ──────────────────────────────────────────────
+
+  const cambiarEstadoCredito = async (nuevoEstado: string) => {
+    if (!dialogCredito) return
+    if (nuevoEstado === 'rechazada' && !observaciones.trim()) {
+      toast.error('Escribe el motivo de rechazo.')
+      return
+    }
+    setGuardando(true)
+    const supabase = createClient()
     const { error } = await supabase
       .from('solicitudes_credito')
-      .update({
-        estado: nuevoEstado,
-        observaciones_admin: observaciones.trim() || null,
-      })
-      .eq('id', detalle.id)
+      .update({ estado: nuevoEstado, observaciones_admin: observaciones.trim() || null })
+      .eq('id', dialogCredito.id)
 
-    if (error) {
-      toast.error('Error al actualizar.')
-    } else {
-      toast.success(`Solicitud ${nuevoEstado === 'aprobada' ? 'aprobada' : 'rechazada'}.`)
-      setDialogOpen(false)
-      cargarSolicitudes()
-    }
+    if (error) { toast.error('Error al actualizar.') }
+    else { toast.success(`Solicitud ${nuevoEstado}.`); setDialogCredito(null); cargarCreditos() }
     setGuardando(false)
   }
 
-  // Contadores por estado
-  const contadores = ESTADOS.slice(1).reduce((acc, e) => {
-    acc[e.value] = solicitudes.filter((s) => s.estado === e.value).length
-    return acc
-  }, {} as Record<string, number>)
+  const cambiarEstadoInversion = async (nuevoEstado: string) => {
+    if (!dialogInversion) return
+    setGuardando(true)
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('solicitudes_inversion')
+      .update({ estado: nuevoEstado })
+      .eq('id', dialogInversion.id)
+
+    if (error) { toast.error('Error al actualizar.') }
+    else { toast.success(`Inversión ${nuevoEstado}.`); setDialogInversion(null); cargarInversiones() }
+    setGuardando(false)
+  }
+
+  // ── Helpers UI ─────────────────────────────────────────────
+
+  const BadgeFiltro = ({ value, active, onClick, count }: { value: string; active: boolean; onClick: () => void; count?: number }) => (
+    <button
+      onClick={onClick}
+      className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all cursor-pointer border ${
+        active ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+      }`}
+    >
+      {LABEL[value]}
+      {count !== undefined && count > 0 && <span className="ml-1 opacity-60">({count})</span>}
+    </button>
+  )
+
+  const fmt = (n: number) => `$${Number(n).toLocaleString()}`
+
+  // ── Render ─────────────────────────────────────────────────
 
   return (
     <div>
@@ -179,53 +206,41 @@ export default function SolicitudesPage() {
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
         <button
           onClick={() => setTab('credito')}
-          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer ${
             tab === 'credito' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          <FileText className="inline size-3.5 mr-1" />
-          Crédito
+          <FileText className="size-3.5" /> Crédito
         </button>
         <button
           onClick={() => setTab('inversion')}
-          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer ${
             tab === 'inversion' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          Inversión
+          <TrendingUp className="size-3.5" /> Inversión
         </button>
       </div>
 
+      {/* ══ TAB CRÉDITO ══ */}
       {tab === 'credito' && (
         <>
-          {/* Filtros por estado */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {ESTADOS.map((e) => (
-              <button
-                key={e.value}
-                onClick={() => setFiltroEstado(e.value)}
-                className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all cursor-pointer border ${
-                  filtroEstado === e.value
-                    ? 'bg-gray-900 text-white border-gray-900'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                {e.label}
-                {e.value !== 'todos' && contadores[e.value] ? (
-                  <span className="ml-1 opacity-70">({contadores[e.value]})</span>
-                ) : null}
-              </button>
+            {ESTADOS_CREDITO.map(e => (
+              <BadgeFiltro
+                key={e} value={e}
+                active={filtroCredito === e}
+                onClick={() => setFiltroCredito(e)}
+                count={e !== 'todos' ? creditos.filter(s => s.estado === e).length : undefined}
+              />
             ))}
           </div>
 
-          {/* Tabla */}
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-6 animate-spin text-gray-400" />
-            </div>
-          ) : solicitudes.length === 0 ? (
+            <div className="flex items-center justify-center py-20"><Loader2 className="size-6 animate-spin text-gray-400" /></div>
+          ) : creditos.length === 0 ? (
             <div className="bg-white rounded-xl border p-12 text-center">
-              <p className="text-gray-400 text-sm">No hay solicitudes{filtroEstado !== 'todos' ? ` con estado "${filtroEstado}"` : ''}.</p>
+              <p className="text-gray-400 text-sm">No hay solicitudes de crédito{filtroCredito !== 'todos' ? ` con estado "${LABEL[filtroCredito]}"` : ''}.</p>
             </div>
           ) : (
             <div className="bg-white rounded-xl border overflow-hidden">
@@ -236,38 +251,36 @@ export default function SolicitudesPage() {
                     <TableHead>Cédula</TableHead>
                     <TableHead>Tipo crédito</TableHead>
                     <TableHead className="text-right">Monto</TableHead>
-                    <TableHead className="text-right">Cuota final</TableHead>
+                    <TableHead className="text-right">Cuota</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {solicitudes.map((s) => {
-                    const badge = ESTADO_BADGES[s.estado] ?? { label: s.estado, color: 'bg-gray-100 text-gray-600' }
-                    return (
-                      <TableRow key={s.id}>
-                        <TableCell className="font-medium">{s.usuario_nombre || 'Sin nombre'}</TableCell>
-                        <TableCell className="font-mono text-sm text-gray-600">{s.usuario_cedula || '—'}</TableCell>
-                        <TableCell className="text-sm text-gray-600">{s.tipo_credito_nombre}</TableCell>
-                        <TableCell className="text-right font-mono text-sm">${s.monto?.toLocaleString() ?? '0'}</TableCell>
-                        <TableCell className="text-right font-mono text-sm">${s.cuota_final?.toFixed(2) ?? '0.00'}</TableCell>
-                        <TableCell className="text-sm text-gray-500">
-                          {new Date(s.created_at).toLocaleDateString('es-EC', { day: '2-digit', month: 'short' })}
-                        </TableCell>
-                        <TableCell>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.color}`}>
-                            {badge.label}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon-xs" onClick={() => abrirDetalle(s)} title="Ver detalle">
-                            <Eye className="size-3.5" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
+                  {creditos.map(s => (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-medium text-sm">{s.usuario_nombre}</TableCell>
+                      <TableCell className="font-mono text-sm text-gray-500">{s.usuario_cedula}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{s.tipo_credito_nombre}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(s.monto)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{s.cuota_final ? `$${Number(s.cuota_final).toFixed(2)}` : '—'}</TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {new Date(s.created_at).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${BADGES[s.estado] ?? 'bg-gray-100 text-gray-600'}`}>
+                          {LABEL[s.estado] ?? s.estado}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" className="cursor-pointer h-7 px-2"
+                          onClick={() => { setDialogCredito(s); setObservaciones(s.observaciones_admin ?? '') }}>
+                          <Eye className="size-3.5 mr-1" /> Ver
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>
@@ -275,90 +288,159 @@ export default function SolicitudesPage() {
         </>
       )}
 
+      {/* ══ TAB INVERSIÓN ══ */}
       {tab === 'inversion' && (
-        <div className="bg-white rounded-xl border p-12 text-center">
-          <p className="text-gray-400 text-sm">Panel de inversiones — Se activará al implementar la Fase 2.7</p>
-        </div>
+        <>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {ESTADOS_INVERSION.map(e => (
+              <BadgeFiltro
+                key={e} value={e}
+                active={filtroInversion === e}
+                onClick={() => setFiltroInversion(e)}
+                count={e !== 'todos' ? inversiones.filter(s => s.estado === e).length : undefined}
+              />
+            ))}
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-20"><Loader2 className="size-6 animate-spin text-gray-400" /></div>
+          ) : inversiones.length === 0 ? (
+            <div className="bg-white rounded-xl border p-12 text-center">
+              <TrendingUp className="size-8 text-gray-200 mx-auto mb-3" />
+              <p className="text-gray-400 text-sm">No hay solicitudes de inversión{filtroInversion !== 'todos' ? ` con estado "${LABEL[filtroInversion]}"` : ''}.</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Cédula</TableHead>
+                    <TableHead>Producto</TableHead>
+                    <TableHead className="text-right">Monto</TableHead>
+                    <TableHead>Plazo</TableHead>
+                    <TableHead>Biometría</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {inversiones.map(s => (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-medium text-sm">{s.usuario_nombre}</TableCell>
+                      <TableCell className="font-mono text-sm text-gray-500">{s.usuario_cedula}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{s.producto_nombre}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(s.monto)}</TableCell>
+                      <TableCell className="text-sm text-gray-500">{s.plazo_dias} días</TableCell>
+                      <TableCell>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.biometria_validada ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                          {s.biometria_validada ? 'Verificada' : 'Pendiente'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {new Date(s.created_at).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${BADGES[s.estado] ?? 'bg-gray-100 text-gray-600'}`}>
+                          {LABEL[s.estado] ?? s.estado}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" className="cursor-pointer h-7 px-2"
+                          onClick={() => setDialogInversion(s)}>
+                          <Eye className="size-3.5 mr-1" /> Ver
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Dialog detalle */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* ══ DIALOG CRÉDITO ══ */}
+      <Dialog open={!!dialogCredito} onOpenChange={(o) => !o && setDialogCredito(null)}>
         <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Detalle de solicitud</DialogTitle>
-          </DialogHeader>
-
-          {detalle && (
-            <div className="space-y-4 py-2">
-              {/* Datos del cliente */}
+          <DialogHeader><DialogTitle>Solicitud de Crédito</DialogTitle></DialogHeader>
+          {dialogCredito && (
+            <div className="space-y-4 py-1">
               <div className="rounded-lg bg-gray-50 p-3 space-y-1.5 text-sm">
-                <p><span className="font-medium">Cliente:</span> {detalle.usuario_nombre}</p>
-                <p><span className="font-medium">Cédula:</span> {detalle.usuario_cedula || '—'}</p>
-                <p><span className="font-medium">Tipo:</span> {detalle.tipo_credito_nombre}</p>
-                <p><span className="font-medium">Monto:</span> ${detalle.monto?.toLocaleString()}</p>
-                <p><span className="font-medium">Plazo:</span> {detalle.plazo_meses} meses</p>
-                <p><span className="font-medium">Cuota final:</span> ${detalle.cuota_final?.toFixed(2)}</p>
-                <p><span className="font-medium">Fecha:</span> {new Date(detalle.created_at).toLocaleDateString('es-EC')}</p>
+                <p><span className="font-medium">Cliente:</span> {dialogCredito.usuario_nombre}</p>
+                <p><span className="font-medium">Cédula:</span> {dialogCredito.usuario_cedula}</p>
+                <p><span className="font-medium">Tipo:</span> {dialogCredito.tipo_credito_nombre}</p>
+                <p><span className="font-medium">Monto:</span> {fmt(dialogCredito.monto)}</p>
+                <p><span className="font-medium">Plazo:</span> {dialogCredito.plazo_meses} meses</p>
+                <p><span className="font-medium">Cuota:</span> ${dialogCredito.cuota_final?.toFixed(2) ?? '—'}</p>
+                <p><span className="font-medium">Estado:</span>{' '}
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${BADGES[dialogCredito.estado] ?? ''}`}>
+                    {LABEL[dialogCredito.estado] ?? dialogCredito.estado}
+                  </span>
+                </p>
               </div>
 
-              {/* Documentos */}
-              <div>
-                <p className="text-sm font-medium mb-2">Documentos</p>
-                <div className="flex gap-2 flex-wrap">
-                  {detalle.cedula_url && (
-                    <a href={detalle.cedula_url} target="_blank" rel="noopener" className="text-xs flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100">
-                      <ExternalLink className="size-3" /> Cédula
-                    </a>
-                  )}
-                  {detalle.selfie_url && (
-                    <a href={detalle.selfie_url} target="_blank" rel="noopener" className="text-xs flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100">
-                      <ExternalLink className="size-3" /> Selfie
-                    </a>
-                  )}
-                  {!detalle.cedula_url && !detalle.selfie_url && (
-                    <p className="text-xs text-gray-400">Sin documentos subidos</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Observaciones */}
               <div className="space-y-1.5">
-                <Label>Observaciones del administrador</Label>
+                <Label>Observaciones</Label>
                 <textarea
                   value={observaciones}
                   onChange={(e) => setObservaciones(e.target.value)}
                   placeholder="Motivo de aprobación o rechazo..."
-                  className="w-full min-h-[80px] rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm resize-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 outline-none"
+                  className="w-full min-h-[72px] rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm resize-none focus-visible:border-ring outline-none"
                 />
-              </div>
-
-              {/* Estado actual */}
-              <div>
-                <Label>Estado actual</Label>
-                <p className="mt-1">
-                  <Badge>{ESTADO_BADGES[detalle.estado]?.label ?? detalle.estado}</Badge>
-                </p>
               </div>
             </div>
           )}
-
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => cambiarEstado('rechazada')}
-              disabled={guardando || detalle?.estado === 'rechazada'}
-              className="text-red-600 border-red-200 hover:bg-red-50 cursor-pointer"
-            >
-              <XCircle className="size-4" />
-              Rechazar
+            <Button variant="outline" onClick={() => cambiarEstadoCredito('rechazada')}
+              disabled={guardando || dialogCredito?.estado === 'rechazada'}
+              className="text-red-600 border-red-200 hover:bg-red-50 cursor-pointer">
+              <XCircle className="size-4" /> Rechazar
             </Button>
-            <Button
-              onClick={() => cambiarEstado('aprobada')}
-              disabled={guardando || detalle?.estado === 'aprobada'}
-              className="text-white bg-green-600 hover:bg-green-700 cursor-pointer"
-            >
+            <Button onClick={() => cambiarEstadoCredito('aprobada')}
+              disabled={guardando || dialogCredito?.estado === 'aprobada'}
+              className="text-white bg-green-600 hover:bg-green-700 cursor-pointer">
               {guardando ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle className="size-4" />}
               Aprobar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ══ DIALOG INVERSIÓN ══ */}
+      <Dialog open={!!dialogInversion} onOpenChange={(o) => !o && setDialogInversion(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Solicitud de Inversión</DialogTitle></DialogHeader>
+          {dialogInversion && (
+            <div className="space-y-4 py-1">
+              <div className="rounded-lg bg-gray-50 p-3 space-y-1.5 text-sm">
+                <p><span className="font-medium">Cliente:</span> {dialogInversion.usuario_nombre}</p>
+                <p><span className="font-medium">Cédula:</span> {dialogInversion.usuario_cedula}</p>
+                <p><span className="font-medium">Producto:</span> {dialogInversion.producto_nombre}</p>
+                <p><span className="font-medium">Monto:</span> {fmt(dialogInversion.monto)}</p>
+                <p><span className="font-medium">Plazo:</span> {dialogInversion.plazo_dias} días</p>
+                <p><span className="font-medium">Biometría:</span> {dialogInversion.biometria_validada ? '✓ Verificada' : 'Pendiente'}</p>
+                <p><span className="font-medium">Estado:</span>{' '}
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${BADGES[dialogInversion.estado] ?? ''}`}>
+                    {LABEL[dialogInversion.estado] ?? dialogInversion.estado}
+                  </span>
+                </p>
+              </div>
+
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => cambiarEstadoInversion('rechazada')}
+              disabled={guardando || dialogInversion?.estado === 'rechazada'}
+              className="text-red-600 border-red-200 hover:bg-red-50 cursor-pointer">
+              <XCircle className="size-4" /> Rechazar
+            </Button>
+            <Button onClick={() => cambiarEstadoInversion('activa')}
+              disabled={guardando || ['activa','rechazada'].includes(dialogInversion?.estado ?? '')}
+              className="text-white bg-green-600 hover:bg-green-700 cursor-pointer">
+              {guardando ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle className="size-4" />}
+              Aprobar y Activar
             </Button>
           </DialogFooter>
         </DialogContent>

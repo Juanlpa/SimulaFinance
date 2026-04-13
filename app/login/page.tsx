@@ -1,12 +1,5 @@
 // ============================================================
-// SimulaFinance — Página de Login
-// ============================================================
-// Autenticación real con Supabase Auth.
-// Flujo:
-//   1. Usuario ingresa email + contraseña
-//   2. supabase.auth.signInWithPassword()
-//   3. Éxito → leer rol de usuario → redirigir según rol
-//   4. Error → mostrar mensaje descriptivo
+// SimulaFinance — Página de Login UI Premium
 // ============================================================
 'use client'
 
@@ -16,13 +9,13 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useInstitucion } from '@/components/theme/ThemeProvider'
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
-import { Eye, EyeOff, Loader2, AlertCircle, LogIn } from 'lucide-react'
+import { Eye, EyeOff, Loader2, AlertCircle, LogIn, ShieldCheck, Zap } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -48,18 +41,16 @@ export default function LoginPage() {
       })
 
       if (signInError) {
-        // Mapear mensajes de error de Supabase a mensajes en español
         const mensajes: Record<string, string> = {
           'Invalid login credentials': 'Credenciales incorrectas. Verifica tu correo y contraseña.',
           'Email not confirmed': 'Tu correo aún no ha sido confirmado. Revisa tu bandeja de entrada.',
-          'Too many requests': 'Demasiados intentos. Espera un momento antes de volver a intentar.',
+          'Too many requests': 'Demasiados intentos. Espera un momento.',
         }
         setError(mensajes[signInError.message] || signInError.message)
         setLoading(false)
         return
       }
 
-      // Obtener el rol del usuario
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         setError('No se pudo obtener la información del usuario.')
@@ -75,12 +66,9 @@ export default function LoginPage() {
 
       const rol = perfil?.rol ?? 'cliente'
 
-      // Redirigir según el rol
-      if (rol === 'admin') {
-        router.push('/admin/dashboard')
-      } else {
-        router.push('/cliente/dashboard')
-      }
+      if (rol === 'admin') router.push('/admin/dashboard')
+      else router.push('/cliente/dashboard')
+
     } catch {
       setError('Ocurrió un error inesperado. Intenta nuevamente.')
       setLoading(false)
@@ -91,137 +79,171 @@ export default function LoginPage() {
   const logoInicial = logoNombre.charAt(0).toUpperCase()
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 px-4 py-8">
-      {/* Fondo decorativo sutil */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-[0.03]"
-        style={{
-          backgroundImage: `radial-gradient(circle at 20% 50%, var(--color-inst-primary) 0%, transparent 50%), radial-gradient(circle at 80% 50%, var(--color-inst-accent) 0%, transparent 50%)`,
-        }}
-      />
+    <main className="min-h-screen flex w-full bg-white relative">
+      {/* Lado Izquierdo: Formulario */}
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:w-1/2 lg:px-20 xl:px-24">
+        <div className="mx-auto w-full max-w-sm lg:w-96 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div>
+            {/* Logo Logo Institucional Clásico (Fallback a inicial) */}
+            <div className="flex items-center gap-3 mb-8">
+              {institucion?.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={institucion.logo_url}
+                  alt={logoNombre}
+                  className="h-10 w-auto rounded-lg object-contain shadow-sm"
+                />
+              ) : (
+                <div 
+                  className="size-10 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md"
+                  style={{ backgroundColor: 'var(--color-inst-primary)' }}
+                >
+                  {logoInicial}
+                </div>
+              )}
+              <span className="font-bold text-2xl tracking-tight text-gray-900">{logoNombre}</span>
+            </div>
+            
+            <h2 className="mt-8 text-3xl font-extrabold text-gray-900 tracking-tight">
+              Bienvenido de nuevo
+            </h2>
+            <p className="mt-2 text-sm text-gray-500">
+              Ingresa tus credenciales para acceder a tu panel financiero.
+            </p>
+          </div>
 
-      <Card className="w-full max-w-sm relative z-10 shadow-lg border-0 ring-1 ring-black/5">
-        <CardHeader className="text-center pb-2">
-          {/* Logo institucional */}
-          <div className="flex justify-center mb-2">
-            {institucion?.logo_url ? (
-              <img
-                src={institucion.logo_url}
-                alt={logoNombre}
-                className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow-md"
-              />
-            ) : (
-              <div
-                className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md transition-transform hover:scale-105"
+          <div className="mt-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <Alert variant="destructive" className="animate-in fade-in zoom-in-95 duration-300 border-red-200 bg-red-50 text-red-800">
+                  <AlertCircle className="size-4" />
+                  <AlertDescription className="font-medium">{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="login-email" className="text-gray-700">Correo electrónico</Label>
+                <Input
+                  id="login-email"
+                  type="email"
+                  placeholder="ejemplo@correo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  disabled={loading}
+                  className="h-11 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 transition-all shadow-sm"
+                  style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="login-password" className="text-gray-700">Contraseña</Label>
+                  <Link
+                    href="/reset-password"
+                    className="text-xs font-semibold transition-colors hover:underline"
+                    style={{ color: 'var(--color-inst-accent)' }}
+                    tabIndex={-1}
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="login-password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    disabled={loading}
+                    className="h-11 pr-10 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 transition-all shadow-sm"
+                    style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading || !email || !password}
+                className="w-full h-11 mt-2 text-[15px] font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl rounded-lg group"
                 style={{ backgroundColor: 'var(--color-inst-primary)' }}
               >
-                {logoInicial}
-              </div>
-            )}
-          </div>
-          <CardTitle className="text-xl font-bold text-gray-900">Iniciar sesión</CardTitle>
-          <CardDescription className="text-gray-500">
-            Accede a {logoNombre}
-          </CardDescription>
-        </CardHeader>
+                {loading ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : (
+                  <>
+                    Iniciar sesión
+                    <LogIn className="size-4 ml-2 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  </>
+                )}
+              </Button>
+            </form>
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Alerta de error */}
-            {error && (
-              <Alert variant="destructive" className="animate-in fade-in-0 slide-in-from-top-1 duration-300">
-                <AlertCircle className="size-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {/* Email */}
-            <div className="space-y-1.5">
-              <Label htmlFor="login-email">Correo electrónico</Label>
-              <Input
-                id="login-email"
-                type="email"
-                placeholder="tu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                disabled={loading}
-                className="h-10"
-              />
-            </div>
-
-            {/* Password con toggle */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="login-password">Contraseña</Label>
+            <div className="mt-8 pt-6 border-t border-gray-100">
+              <p className="text-center text-sm text-gray-600">
+                ¿No tienes una cuenta aún?{' '}
                 <Link
-                  href="/reset-password"
-                  className="text-xs font-medium hover:underline transition-colors"
-                  style={{ color: 'var(--color-inst-accent)' }}
-                  tabIndex={-1}
+                  href="/registro"
+                  className="font-bold hover:underline transition-colors ml-1"
+                  style={{ color: 'var(--color-inst-primary)' }}
                 >
-                  ¿Olvidaste tu contraseña?
+                  Regístrate ahora
                 </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Lado Derecho: Arte Visual / Brand */}
+      <div className="hidden lg:block relative w-0 flex-1 bg-gray-900 overflow-hidden">
+        {/* Fondo Base con gradiente dinámica */}
+        <div 
+          className="absolute inset-0 opacity-90 transition-colors duration-1000"
+          style={{ 
+             background: `linear-gradient(135deg, var(--color-inst-primary) 0%, var(--color-inst-secondary) 100%)`
+          }}
+        />
+        
+        {/* Orbes decorativos estilo Glassmorphism */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full opacity-30 mix-blend-screen blur-[80px] bg-white animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[10%] w-[50%] h-[50%] rounded-full opacity-20 mix-blend-screen blur-[100px] bg-blue-300 animate-pulse" style={{ animationDelay: '2s' }}/>
+        
+        <div className="absolute inset-0 flex flex-col justify-center px-16 xl:px-24 text-white z-10">
+          <div className="max-w-xl animate-in fade-in slide-in-from-right-8 duration-1000 delay-150 fill-mode-both">
+            <h1 className="text-4xl xl:text-5xl font-bold tracking-tight mb-6 leading-tight">
+              Gestiona tus finanzas de manera inteligente.
+            </h1>
+            <p className="text-lg xl:text-xl text-white/80 mb-10 leading-relaxed font-light">
+              Calcula cuotas, solicita facilidades crediticias e invierte todo desde un único panel diseñado para tu comodidad.
+            </p>
+            
+            <div className="grid grid-cols-2 gap-6">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-colors">
+                <ShieldCheck className="size-8 text-white/90 mb-3" />
+                <h3 className="font-semibold text-lg mb-1">Seguridad Criptográfica</h3>
+                <p className="text-sm text-white/70">Tus datos financieros están protegidos con RLS y Auth avanzado.</p>
               </div>
-              <div className="relative">
-                <Input
-                  id="login-password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                  disabled={loading}
-                  className="h-10 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  tabIndex={-1}
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                >
-                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-colors">
+                <Zap className="size-8 text-white/90 mb-3" />
+                <h3 className="font-semibold text-lg mb-1">Cálculos Ultrarrápidos</h3>
+                <p className="text-sm text-white/70">Simulaciones instantáneas ajustadas a la ley ecuatoriana.</p>
               </div>
             </div>
-
-            {/* Botón submit */}
-            <Button
-              type="submit"
-              disabled={loading || !email || !password}
-              className="w-full h-10 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:shadow-md cursor-pointer"
-              style={{ backgroundColor: 'var(--color-inst-primary)' }}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Ingresando...
-                </>
-              ) : (
-                <>
-                  <LogIn className="size-4" />
-                  Iniciar sesión
-                </>
-              )}
-            </Button>
-          </form>
-
-          {/* Link a registro */}
-          <p className="text-center text-sm text-gray-500 mt-6">
-            ¿No tienes cuenta?{' '}
-            <Link
-              href="/registro"
-              className="font-semibold hover:underline transition-colors"
-              style={{ color: 'var(--color-inst-accent)' }}
-            >
-              Regístrate
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      </div>
     </main>
   )
 }

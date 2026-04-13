@@ -9,21 +9,22 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useInstitucion } from '@/components/theme/ThemeProvider'
 import { 
-  BarChart3, 
-  Building2, 
-  CreditCard, 
-  Receipt, 
-  FileCheck, 
-  TrendingUp, 
-  Layers, 
-  LayoutDashboard, 
-  FileText, 
-  PieChart, 
+  BarChart3,
+  Building2,
+  CreditCard,
+  Receipt,
+  FileCheck,
+  TrendingUp,
+  Layers,
+  LayoutDashboard,
+  FileText,
+  PieChart,
   LogOut,
   ChevronLeft,
   Settings,
   Calculator,
-  History
+  History,
+  Users
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -37,6 +38,7 @@ const NAV_ITEMS_ADMIN = [
   { href: '/admin/requisitos-credito', label: 'Requisitos', icon: FileCheck },
   { href: '/admin/tasas-referencia', label: 'Tasas BCE', icon: TrendingUp },
   { href: '/admin/productos-inversion', label: 'Productos inversión', icon: CreditCard },
+  { href: '/admin/clientes', label: 'Clientes', icon: Users },
   { href: '/admin/solicitudes', label: 'Solicitudes', icon: FileText },
   { href: '/admin/reportes', label: 'Reportes', icon: PieChart },
 ]

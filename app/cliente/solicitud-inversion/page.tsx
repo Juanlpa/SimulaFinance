@@ -6,7 +6,6 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { getDocumentoUrl } from '@/lib/supabase/storage'
 import { Progress } from '@/components/ui/progress'
 import { toast } from 'sonner'
 
@@ -36,7 +35,7 @@ function SolicitudInversionContent() {
   const [solicitud, setSolicitud] = useState<any>(null)
   const [producto, setProducto] = useState<any>(null)
   const [usuario, setUsuario] = useState<any>(null)
-  const [cedulaUrlFirmada, setCedulaUrlFirmada] = useState<string | null>(null)
+  const [cedulaUrlLocal, setCedulaUrlLocal] = useState<string | null>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -98,22 +97,21 @@ function SolicitudInversionContent() {
     }
   }
 
-  const handlePaso2 = async (docsMapa: Record<string, string>) => {
+  const handlePaso2 = async (docsMapa: Record<string, string>, localUrls: Record<string, string>) => {
     setProcesando(true)
     const supabase = createClient()
 
     try {
       const cedulaPath = Object.values(docsMapa).find(p => p.includes('cedula')) || null
-      
+
       await supabase.from('solicitudes_inversion').update({
         documento_identidad_url: cedulaPath,
         estado: 'biometria'
       }).eq('id', solicitud.id)
 
-      if (cedulaPath) {
-        const url = await getDocumentoUrl('inversiones-docs', cedulaPath)
-        setCedulaUrlFirmada(url)
-      }
+      // Usar URL local del archivo para face-api (evita CORS con Supabase)
+      const cedulaLocal = Object.entries(localUrls).find(([k]) => k.toLowerCase().includes('céd') || k.toLowerCase().includes('cedula'))
+      setCedulaUrlLocal(cedulaLocal?.[1] ?? null)
 
       setPaso(3)
     } catch (err) {
@@ -126,13 +124,18 @@ function SolicitudInversionContent() {
 
   const handlePaso3 = async (selfieBlob: Blob) => {
     setProcesando(true)
-    const supabase = createClient()
 
     try {
       const fileName = `${solicitud.id}/selfie.jpg`
-      const { error: upErr } = await supabase.storage.from('inversiones-docs').upload(fileName, selfieBlob, { upsert: true })
-      if (upErr) throw upErr
+      const selfieFile = new File([selfieBlob], 'selfie.jpg', { type: 'image/jpeg' })
+      const form = new FormData()
+      form.append('file', selfieFile)
+      form.append('bucket', 'inversiones-docs')
+      form.append('path', fileName)
+      const res = await fetch('/api/upload', { method: 'POST', body: form })
+      if (!res.ok) throw new Error((await res.json()).error)
 
+      const supabase = createClient()
       await supabase.from('solicitudes_inversion').update({
         selfie_url: fileName,
         biometria_validada: true,
@@ -143,6 +146,7 @@ function SolicitudInversionContent() {
       router.push('/cliente/mis-solicitudes')
     } catch (err) {
       toast.error('Error al finalizar solicitud')
+      console.error(err)
     } finally {
       setProcesando(false)
     }
@@ -153,6 +157,30 @@ function SolicitudInversionContent() {
       <div className="flex flex-col items-center justify-center py-40 gap-4">
         <Loader2 className="size-10 animate-spin text-gray-300" />
         <p className="text-gray-500">Preparando solicitud de inversión...</p>
+      </div>
+    )
+  }
+
+  if (!producto) {
+    return (
+      <div className="max-w-lg mx-auto py-20 text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto">
+          <span className="text-2xl">📈</span>
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Primero simula tu inversión</h2>
+          <p className="text-gray-500 text-sm">
+            Para iniciar una solicitud, debes primero calcular tu rendimiento en el simulador
+            y hacer clic en <strong>"Me interesa"</strong>.
+          </p>
+        </div>
+        <a
+          href="/cliente/simulador-inversion"
+          className="inline-block px-6 py-3 rounded-lg text-white font-semibold text-sm"
+          style={{ backgroundColor: 'var(--color-inst-primary)' }}
+        >
+          Ir al Simulador de Inversión
+        </a>
       </div>
     )
   }
@@ -205,7 +233,7 @@ function SolicitudInversionContent() {
         )}
         {paso === 3 && (
           <ValidacionBiometrica 
-            cedulaUrl={cedulaUrlFirmada}
+            cedulaUrl={cedulaUrlLocal}
             onBack={() => setPaso(2)}
             onNext={handlePaso3}
             loading={procesando}

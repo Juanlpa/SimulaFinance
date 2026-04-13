@@ -22,13 +22,12 @@ interface Simulacion {
   created_at: string
   monto: number
   plazo_meses: number
-  tasa_interes_anual: number
+  tasa_aplicada: number
   sistema_amortizacion: string
   cuota_base: number
   cuota_final: number
   total_intereses: number
-  total_cobros: number
-  costo_total: number
+  total_a_pagar: number
 }
 
 export default function MisSimulacionesPage() {
@@ -104,7 +103,6 @@ export default function MisSimulacionesPage() {
                 <TableHead>Sistema</TableHead>
                 <TableHead className="text-right">Cuota final</TableHead>
                 <TableHead className="text-right">Intereses</TableHead>
-                <TableHead className="text-right">Cobros</TableHead>
                 <TableHead className="text-right">Costo total</TableHead>
               </TableRow>
             </TableHeader>
@@ -118,7 +116,7 @@ export default function MisSimulacionesPage() {
                     ${sim.monto.toLocaleString()}
                   </TableCell>
                   <TableCell className="text-sm">{sim.plazo_meses} m</TableCell>
-                  <TableCell className="text-right font-mono text-sm">{sim.tasa_interes_anual}%</TableCell>
+                  <TableCell className="text-right font-mono text-sm">{sim.tasa_aplicada}%</TableCell>
                   <TableCell className="text-sm">
                     {sim.sistema_amortizacion === 'francesa' ? 'Francés' : 'Alemán'}
                   </TableCell>
@@ -128,11 +126,8 @@ export default function MisSimulacionesPage() {
                   <TableCell className="text-right font-mono text-sm text-gray-600">
                     ${sim.total_intereses?.toFixed(2)}
                   </TableCell>
-                  <TableCell className="text-right font-mono text-sm text-gray-600">
-                    ${sim.total_cobros?.toFixed(2)}
-                  </TableCell>
                   <TableCell className="text-right font-mono text-sm font-medium">
-                    ${sim.costo_total?.toLocaleString()}
+                    ${sim.total_a_pagar?.toLocaleString()}
                   </TableCell>
                 </TableRow>
               ))}

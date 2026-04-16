@@ -1,6 +1,6 @@
 // ============================================================
 // SimulaFinance — Layout público por institución (/app/[slug])
-// Carga la institución por slug e inyecta su theme
+// Carga la institución por slug e inyecta su theme visual
 // ============================================================
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'

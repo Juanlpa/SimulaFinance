@@ -36,11 +36,16 @@ export default function ClientesPage() {
   const cargar = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data: perfil } = await supabase.from('usuarios').select('institucion_id').eq('id', user.id).single()
+    if (!perfil?.institucion_id) return
 
     const { data, error } = await supabase
       .from('usuarios')
       .select('id, nombre, apellido, email, cedula, telefono, direccion, created_at')
       .eq('rol', 'cliente')
+      .eq('institucion_id', perfil.institucion_id)
       .order('created_at', { ascending: false })
 
     if (error) { console.error(error); setLoading(false); return }

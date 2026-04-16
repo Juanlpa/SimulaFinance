@@ -82,10 +82,15 @@ export default function SolicitudesPage() {
   const cargarCreditos = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data: perfil } = await supabase.from('usuarios').select('institucion_id').eq('id', user.id).single()
+    if (!perfil?.institucion_id) return
 
     let q = supabase
       .from('solicitudes_credito')
-      .select('id, created_at, monto, plazo_meses, cuota_final, estado, observaciones_admin, cedula_url, selfie_url, buro_score, usuarios(nombre, apellido, cedula), tipos_credito(nombre)')
+      .select('id, created_at, monto, plazo_meses, cuota_final, estado, observaciones_admin, cedula_url, selfie_url, buro_score, usuarios!inner(nombre, apellido, cedula, institucion_id), tipos_credito(nombre)')
+      .eq('usuarios.institucion_id', perfil.institucion_id)
       .order('created_at', { ascending: false })
 
     if (filtroCredito !== 'todos') q = q.eq('estado', filtroCredito)
@@ -115,10 +120,15 @@ export default function SolicitudesPage() {
   const cargarInversiones = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data: perfil } = await supabase.from('usuarios').select('institucion_id').eq('id', user.id).single()
+    if (!perfil?.institucion_id) return
 
     let q = supabase
       .from('solicitudes_inversion')
-      .select('id, created_at, monto, plazo_dias, estado, documento_identidad_url, selfie_url, biometria_validada, usuarios(nombre, apellido, cedula), productos_inversion(nombre)')
+      .select('id, created_at, monto, plazo_dias, estado, documento_identidad_url, selfie_url, biometria_validada, usuarios!inner(nombre, apellido, cedula, institucion_id), productos_inversion(nombre)')
+      .eq('usuarios.institucion_id', perfil.institucion_id)
       .order('created_at', { ascending: false })
 
     if (filtroInversion !== 'todos') q = q.eq('estado', filtroInversion)

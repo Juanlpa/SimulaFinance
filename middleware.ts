@@ -17,7 +17,10 @@ export async function middleware(request: NextRequest) {
   const rutasPublicas = ['/', '/login', '/registro']
   const esRutaPublica =
     rutasPublicas.some((ruta) => pathname === ruta) ||
-    pathname.startsWith('/api/')
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/app/')  // simulador + login + registro por slug
+
+  // /registro muestra selector de institución — no redirigir
 
   // Si no hay usuario y la ruta requiere autenticación
   if (!user && !esRutaPublica) {

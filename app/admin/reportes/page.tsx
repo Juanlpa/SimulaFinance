@@ -60,11 +60,11 @@ export default function ReportesPage() {
       montoAprobadoRes,
       clientesRes,
     ] = await Promise.all([
-      supabase.from('simulaciones').select('id', { count: 'exact', head: true }),
-      supabase.from('solicitudes_credito').select('id', { count: 'exact', head: true }),
-      supabase.from('solicitudes_inversion').select('id', { count: 'exact', head: true }),
-      supabase.from('solicitudes_credito').select('monto'),
-      supabase.from('solicitudes_credito').select('monto').eq('estado', 'aprobada'),
+      supabase.from('simulaciones').select('id, usuarios!inner(institucion_id)', { count: 'exact', head: true }).eq('usuarios.institucion_id', perfil.institucion_id),
+      supabase.from('solicitudes_credito').select('id, usuarios!inner(institucion_id)', { count: 'exact', head: true }).eq('usuarios.institucion_id', perfil.institucion_id),
+      supabase.from('solicitudes_inversion').select('id, usuarios!inner(institucion_id)', { count: 'exact', head: true }).eq('usuarios.institucion_id', perfil.institucion_id),
+      supabase.from('solicitudes_credito').select('monto, usuarios!inner(institucion_id)').eq('usuarios.institucion_id', perfil.institucion_id),
+      supabase.from('solicitudes_credito').select('monto, usuarios!inner(institucion_id)').eq('estado', 'aprobada').eq('usuarios.institucion_id', perfil.institucion_id),
       supabase.from('usuarios').select('id', { count: 'exact', head: true }).eq('rol', 'cliente').eq('institucion_id', perfil.institucion_id),
     ])
 

@@ -89,20 +89,24 @@ export default function AdminDashboardPage() {
     ] = await Promise.all([
       supabase
         .from('solicitudes_credito')
-        .select('id', { count: 'exact', head: true })
-        .eq('estado', 'pendiente'),
+        .select('id, usuarios!inner(institucion_id)', { count: 'exact', head: true })
+        .eq('estado', 'pendiente')
+        .eq('usuarios.institucion_id', instId),
       supabase
         .from('solicitudes_credito')
-        .select('id', { count: 'exact', head: true })
-        .eq('estado', 'aprobada'),
+        .select('id, usuarios!inner(institucion_id)', { count: 'exact', head: true })
+        .eq('estado', 'aprobada')
+        .eq('usuarios.institucion_id', instId),
       supabase
         .from('solicitudes_credito')
-        .select('id', { count: 'exact', head: true })
-        .eq('estado', 'rechazada'),
+        .select('id, usuarios!inner(institucion_id)', { count: 'exact', head: true })
+        .eq('estado', 'rechazada')
+        .eq('usuarios.institucion_id', instId),
       supabase
         .from('simulaciones')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+        .select('id, usuarios!inner(institucion_id)', { count: 'exact', head: true })
+        .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+        .eq('usuarios.institucion_id', instId),
       supabase
         .from('usuarios')
         .select('id', { count: 'exact', head: true })
@@ -110,8 +114,9 @@ export default function AdminDashboardPage() {
         .eq('institucion_id', instId),
       supabase
         .from('solicitudes_inversion')
-        .select('id', { count: 'exact', head: true })
-        .eq('estado', 'pendiente'),
+        .select('id, usuarios!inner(institucion_id)', { count: 'exact', head: true })
+        .eq('estado', 'pendiente')
+        .eq('usuarios.institucion_id', instId),
       // Últimas 5 solicitudes
       supabase
         .from('solicitudes_credito')
@@ -121,9 +126,10 @@ export default function AdminDashboardPage() {
           monto,
           cuota_final,
           estado,
-          usuarios!inner(nombre, apellido),
+          usuarios!inner(nombre, apellido, institucion_id),
           tipos_credito!inner(nombre)
         `)
+        .eq('usuarios.institucion_id', instId)
         .order('created_at', { ascending: false })
         .limit(5),
     ])

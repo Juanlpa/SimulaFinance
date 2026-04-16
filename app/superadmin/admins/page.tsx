@@ -155,7 +155,9 @@ export default function AdminsPage() {
                       onValueChange={val => cambiarInstitucion(a.id, val || '')}
                     >
                       <SelectTrigger className="h-8 text-xs w-44">
-                        <SelectValue placeholder="Seleccionar" />
+                        <SelectValue placeholder="Seleccionar">
+                          {instituciones.find(i => i.id === a.institucion_id)?.nombre || "Seleccionar"}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {instituciones.map(inst => (

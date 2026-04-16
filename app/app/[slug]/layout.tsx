@@ -47,9 +47,16 @@ export default async function SlugLayout({ children, params }: Props) {
                 <p className="text-xs text-gray-500">{institucion.slogan}</p>
               )}
             </div>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
               <a
-                href="/login"
+                href={`/app/${slug}/registro`}
+                className="text-sm font-medium px-4 py-1.5 rounded-lg border"
+                style={{ color: 'var(--color-inst-primary)', borderColor: 'var(--color-inst-primary)' }}
+              >
+                Registrarse
+              </a>
+              <a
+                href={`/app/${slug}/login`}
                 className="text-sm font-medium text-white px-4 py-1.5 rounded-lg"
                 style={{ backgroundColor: 'var(--color-inst-primary)' }}
               >

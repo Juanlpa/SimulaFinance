@@ -68,8 +68,8 @@ export default function ReportesPage() {
       supabase.from('usuarios').select('id', { count: 'exact', head: true }).eq('rol', 'cliente').eq('institucion_id', perfil.institucion_id),
     ])
 
-    const montoTotal = (montoSolicitadoRes.data ?? []).reduce((a: number, s: Record<string, number>) => a + (s.monto ?? 0), 0)
-    const montoAprobado = (montoAprobadoRes.data ?? []).reduce((a: number, s: Record<string, number>) => a + (s.monto ?? 0), 0)
+    const montoTotal = (montoSolicitadoRes.data ?? []).reduce((a: number, s: { monto: number }) => a + (s.monto ?? 0), 0)
+    const montoAprobado = (montoAprobadoRes.data ?? []).reduce((a: number, s: { monto: number }) => a + (s.monto ?? 0), 0)
 
     setStats({
       totalSimulaciones: simRes.count ?? 0,

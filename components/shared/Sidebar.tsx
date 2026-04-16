@@ -103,14 +103,14 @@ export function Sidebar() {
       <div className="px-6 mb-8">
         <div className="flex items-center gap-3">
           <div className="size-8 rounded-lg bg-white flex items-center justify-center font-bold text-lg" style={{ color: 'var(--color-inst-primary)' }}>
-            {institucion?.nombre?.charAt(0) || 'S'}
+            {role === 'superadmin' ? '★' : (institucion?.nombre?.charAt(0) || 'S')}
           </div>
           <div className="overflow-hidden">
             <p className="text-white text-sm font-bold truncate">
-              {institucion?.nombre ?? 'SimulaFinance'}
+              {role === 'superadmin' ? 'Super Admin' : (institucion?.nombre ?? 'SimulaFinance')}
             </p>
             <p className="text-white/50 text-[10px] uppercase tracking-widest font-medium">
-              {role === 'superadmin' ? 'Super Admin' : `Panel ${role}`}
+              {role === 'superadmin' ? 'Panel Global' : `Panel ${role}`}
             </p>
           </div>
         </div>

@@ -61,6 +61,7 @@ const cobroVacio = {
   es_global: true,
   tipo_credito_id: '' as string,
   es_solca: false,
+  es_desgravamen: false,
 }
 
 export default function CobrosIndirectosPage() {
@@ -128,6 +129,7 @@ export default function CobrosIndirectosPage() {
       es_global: cobro.es_global,
       tipo_credito_id: cobro.tipo_credito_id ?? '',
       es_solca: cobro.es_solca,
+      es_desgravamen: cobro.es_desgravamen,
     })
     setDialogOpen(true)
   }
@@ -149,6 +151,7 @@ export default function CobrosIndirectosPage() {
       es_global: form.es_global,
       tipo_credito_id: form.es_global ? null : (form.tipo_credito_id || null),
       es_solca: form.es_solca,
+      es_desgravamen: form.es_desgravamen,
     }
 
     try {
@@ -186,15 +189,21 @@ export default function CobrosIndirectosPage() {
   const calcPreview = () => {
     const monto = 10000
     const plazo = 12
+    if (form.es_desgravamen) {
+      const tasaMensual = form.valor / 12 / 100
+      const mes1 = monto * tasaMensual
+      const mesN = (monto / plazo) * tasaMensual  // saldo aprox último mes (alemana)
+      return { total: null, mes1, mesN, esDesgravamen: true }
+    }
     if (form.es_solca) {
       const total = monto * PORCENTAJE_SOLCA
-      return { total, mensual: total / plazo }
+      return { total, mensual: total / plazo, esDesgravamen: false }
     }
     if (form.tipo_cobro === 'porcentaje') {
       const total = monto * (form.valor / 100)
-      return { total, mensual: total / plazo }
+      return { total, mensual: total / plazo, esDesgravamen: false }
     }
-    return { total: form.valor, mensual: form.valor / plazo }
+    return { total: form.valor, mensual: form.valor / plazo, esDesgravamen: false }
   }
 
   const preview = calcPreview()
@@ -291,6 +300,7 @@ export default function CobrosIndirectosPage() {
                   </TableCell>
                   <TableCell className="text-center">
                     {cobro.es_solca && <Badge variant="secondary">SOLCA</Badge>}
+                    {cobro.es_desgravamen && <Badge variant="outline" className="text-blue-600 border-blue-300">Desgravamen</Badge>}
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge variant={cobro.obligatorio ? 'default' : 'secondary'}>
@@ -332,69 +342,97 @@ export default function CobrosIndirectosPage() {
               />
             </div>
 
-            {/* Tipo: % o fijo */}
-            <div className="space-y-1.5">
-              <Label>Tipo de cobro</Label>
-              <div className="flex gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={form.tipo_cobro === 'porcentaje'}
-                    onChange={() => setForm({ ...form, tipo_cobro: 'porcentaje' })}
-                  />
-                  <span className="text-sm">Porcentaje sobre monto</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={form.tipo_cobro === 'fijo'}
-                    onChange={() => setForm({ ...form, tipo_cobro: 'fijo' })}
-                  />
-                  <span className="text-sm">Valor fijo</span>
-                </label>
+            {/* Switch de cálculo variable sobre saldo */}
+            <label className="flex items-start gap-2.5 cursor-pointer rounded-lg border p-3 bg-blue-50/50 border-blue-100">
+              <input
+                type="checkbox"
+                checked={form.es_desgravamen}
+                onChange={(e) => setForm({
+                  ...form,
+                  es_desgravamen: e.target.checked,
+                  tipo_cobro: e.target.checked ? 'porcentaje' : form.tipo_cobro,
+                  es_solca: e.target.checked ? false : form.es_solca,
+                })}
+                className="rounded mt-0.5"
+              />
+              <div>
+                <span className="text-sm font-medium text-blue-700">Cálculo variable sobre la deuda (Saldo deudor)</span>
+                <p className="text-xs text-blue-500 mt-0.5">
+                  El valor mensual disminuye conforme se paga el crédito. Se calcula directamente sobre el saldo deudor de cada período en lugar del préstamo original.
+                </p>
               </div>
-            </div>
+            </label>
+
+            {/* Tipo: % o fijo (oculto si es desgravamen) */}
+            {!form.es_desgravamen && (
+              <div className="space-y-1.5">
+                <Label>Tipo de cobro</Label>
+                <div className="flex gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={form.tipo_cobro === 'porcentaje'}
+                      onChange={() => setForm({ ...form, tipo_cobro: 'porcentaje' })}
+                    />
+                    <span className="text-sm">Porcentaje sobre monto</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={form.tipo_cobro === 'fijo'}
+                      onChange={() => setForm({ ...form, tipo_cobro: 'fijo' })}
+                    />
+                    <span className="text-sm">Valor fijo</span>
+                  </label>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-1.5">
-              <Label>Valor {form.tipo_cobro === 'porcentaje' ? '(%)' : '($)'}</Label>
+              <Label>
+                {form.es_desgravamen ? 'Tasa anual (%)' : `Valor ${form.tipo_cobro === 'porcentaje' ? '(%)' : '($)'}`}
+              </Label>
               <div className="relative">
                 <Input
                   type="number"
-                  step="0.01"
+                  step="0.0001"
                   value={form.valor}
                   onChange={(e) => setForm({ ...form, valor: parseFloat(e.target.value) || 0 })}
                   className="h-10 pl-6"
                 />
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-                  {form.tipo_cobro === 'porcentaje' ? '%' : '$'}
-                </span>
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">%</span>
               </div>
-              {form.tipo_cobro === 'porcentaje' && (
+              {form.es_desgravamen ? (
+                <p className="text-xs text-gray-400">Tasa referencial cooperativas Ecuador: 0.7488% anual</p>
+              ) : form.tipo_cobro === 'porcentaje' ? (
                 <p className="text-xs text-gray-400">Ej: 0.5 para 0.5%</p>
-              )}
+              ) : null}
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Base de cálculo</Label>
-              <div className="flex gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={form.base_calculo === 'monto_credito'}
-                    onChange={() => setForm({ ...form, base_calculo: 'monto_credito' })}
-                  />
-                  <span className="text-sm">Sobre monto del crédito</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={form.base_calculo === 'valor_bien'}
-                    onChange={() => setForm({ ...form, base_calculo: 'valor_bien' })}
-                  />
-                  <span className="text-sm">Sobre valor del bien</span>
-                </label>
+            {/* Base de cálculo (oculta si es desgravamen) */}
+            {!form.es_desgravamen && (
+              <div className="space-y-1.5">
+                <Label>Base de cálculo</Label>
+                <div className="flex gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={form.base_calculo === 'monto_credito'}
+                      onChange={() => setForm({ ...form, base_calculo: 'monto_credito' })}
+                    />
+                    <span className="text-sm">Sobre monto del crédito</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={form.base_calculo === 'valor_bien'}
+                      onChange={() => setForm({ ...form, base_calculo: 'valor_bien' })}
+                    />
+                    <span className="text-sm">Sobre valor del bien</span>
+                  </label>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="space-y-1.5">
               <Label>Aplica a</Label>
@@ -430,44 +468,33 @@ export default function CobrosIndirectosPage() {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={form.es_solca}
-                  onChange={(e) => setForm({ ...form, es_solca: e.target.checked })}
-                  className="rounded"
-                />
-                <span className="text-sm">Es SOLCA</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
                   checked={form.obligatorio}
                   onChange={(e) => setForm({ ...form, obligatorio: e.target.checked })}
                   className="rounded"
                 />
-                <span className="text-sm">Obligatorio</span>
+                <span className="text-sm">Es Obligatorio</span>
               </label>
             </div>
 
-            {/* SOLCA info */}
-            {form.es_solca && (
-              <Alert>
-                <Info className="size-4" />
-                <AlertDescription className="text-xs">
-                  Si &quot;Es SOLCA&quot; está activo, el cálculo aplica regla de proporcionalidad:<br />
-                  • Plazo ≤ 12 meses: total = monto × 0.5% × (plazo/12)<br />
-                  • Plazo &gt; 12 meses: total = monto × 0.5%
-                </AlertDescription>
-              </Alert>
-            )}
+
 
             {/* Preview de cálculo */}
             <div className="bg-gray-50 rounded-lg p-3 border">
               <p className="text-xs font-medium text-gray-600 mb-1">
                 Preview (crédito de $10,000 a 12 meses)
               </p>
-              <div className="flex gap-4 text-sm">
-                <span>Total: <strong className="font-mono">${preview.total.toFixed(2)}</strong></span>
-                <span>Mensual: <strong className="font-mono">${preview.mensual.toFixed(2)}</strong></span>
-              </div>
+              {preview.esDesgravamen ? (
+                <div className="flex gap-4 text-sm">
+                  <span>Mes 1: <strong className="font-mono">${(preview.mes1 ?? 0).toFixed(2)}</strong></span>
+                  <span>Mes 12: <strong className="font-mono">${(preview.mesN ?? 0).toFixed(2)}</strong></span>
+                  <span className="text-xs text-gray-400">(valor decrece cada mes)</span>
+                </div>
+              ) : (
+                <div className="flex gap-4 text-sm">
+                  <span>Total: <strong className="font-mono">${(preview.total ?? 0).toFixed(2)}</strong></span>
+                  <span>Mensual: <strong className="font-mono">${(preview.mensual ?? 0).toFixed(2)}</strong></span>
+                </div>
+              )}
             </div>
           </div>
 

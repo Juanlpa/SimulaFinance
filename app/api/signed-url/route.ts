@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Faltan parámetros: bucket, path' }, { status: 400 })
   }
 
-  const bucketsPermitidos = ['solicitudes-docs', 'inversiones-docs', 'logos']
+  const bucketsPermitidos = ['solicitudes-docs', 'inversiones-docs', 'logos', 'contratos']
   if (!bucketsPermitidos.includes(bucket)) {
     return NextResponse.json({ error: 'Bucket no permitido' }, { status: 400 })
   }

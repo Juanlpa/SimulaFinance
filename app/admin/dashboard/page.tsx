@@ -165,33 +165,38 @@ export default function AdminDashboardPage() {
   const m = metricas
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <h1 className="text-3xl font-extrabold tracking-tight mb-6">
-        Panel General de <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, var(--color-inst-primary), var(--color-inst-accent))' }}>Administración</span>
-      </h1>
+    <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out">
+      <div className="mb-10">
+        <h1 className="text-4xl lg:text-5xl font-black tracking-tight mb-3 text-slate-900 drop-shadow-sm">
+          Panel <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(135deg, var(--color-inst-primary), var(--color-inst-accent))' }}>Administrativo</span>
+        </h1>
+        <p className="text-slate-500 text-lg font-medium max-w-2xl">
+          Monitorea métricas clave en tiempo real y gestiona las solicitudes de los clientes.
+        </p>
+      </div>
 
-      {/* Métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Métricas Principales */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricaCard
-          icon={<Clock className="size-5" />}
+          icon={<Clock className="size-6 drop-shadow-sm" />}
           label="Solicitudes pendientes"
           valor={m?.pendientes ?? 0}
           color="var(--color-inst-primary)"
         />
         <MetricaCard
-          icon={<CheckCircle className="size-5" />}
+          icon={<CheckCircle className="size-6 drop-shadow-sm" />}
           label="Aprobadas"
           valor={m?.aprobadas ?? 0}
-          color="#16a34a"
+          color="#10b981"
         />
         <MetricaCard
-          icon={<Calculator className="size-5" />}
+          icon={<Calculator className="size-6 drop-shadow-sm" />}
           label="Simulaciones del mes"
           valor={m?.simulacionesMes ?? 0}
           color="var(--color-inst-accent)"
         />
         <MetricaCard
-          icon={<Users className="size-5" />}
+          icon={<Users className="size-6 drop-shadow-sm" />}
           label="Clientes registrados"
           valor={m?.clientes ?? 0}
           color="var(--color-inst-secondary)"
@@ -199,92 +204,99 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Métricas secundarias */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <Card>
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-50">
-                <XCircle className="size-5 text-red-500" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <Card className="bg-white/80 backdrop-blur-xl border border-slate-200/60 shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 group rounded-[2rem] overflow-hidden">
+          <CardContent className="p-6 flex items-center justify-between relative z-10">
+            <div className="flex items-center gap-5">
+              <div className="p-4 rounded-2xl bg-red-50 shadow-inner group-hover:scale-110 transition-transform duration-500 group-hover:bg-red-100">
+                <XCircle className="size-7 text-red-500" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Rechazadas</p>
-                <p className="text-xl font-bold">{m?.rechazadas ?? 0}</p>
+                <p className="text-[15px] font-bold text-slate-500 mb-1">Rechazadas</p>
+                <p className="text-4xl font-black text-slate-800 tracking-tight">{m?.rechazadas ?? 0}</p>
               </div>
             </div>
           </CardContent>
+          <div className="absolute inset-0 bg-gradient-to-r from-red-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-50">
-                <TrendingUp className="size-5 text-emerald-500" />
+        
+        <Card className="bg-white/80 backdrop-blur-xl border border-slate-200/60 shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 group rounded-[2rem] overflow-hidden">
+          <CardContent className="p-6 flex items-center justify-between relative z-10">
+            <div className="flex items-center gap-5">
+              <div className="p-4 rounded-2xl bg-emerald-50 shadow-inner group-hover:scale-110 transition-transform duration-500 group-hover:bg-emerald-100">
+                <TrendingUp className="size-7 text-emerald-500" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Inversiones pendientes</p>
-                <p className="text-xl font-bold">{m?.inversionesPendientes ?? 0}</p>
+                <p className="text-[15px] font-bold text-slate-500 mb-1">Inversiones pendientes</p>
+                <p className="text-4xl font-black text-slate-800 tracking-tight">{m?.inversionesPendientes ?? 0}</p>
               </div>
             </div>
           </CardContent>
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </Card>
       </div>
 
       {/* Últimas solicitudes */}
-      <div className="bg-white rounded-xl border overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="font-semibold flex items-center gap-2">
-            <FileText className="size-4 text-gray-500" />
+      <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] border border-slate-200/60 shadow-[0_8px_30px_rgba(0,0,0,0.03)] overflow-hidden p-2">
+        <div className="flex items-center justify-between p-6 px-8 border-b border-slate-100">
+          <h2 className="text-xl font-bold flex items-center gap-3 text-slate-900">
+            <div className="p-2 bg-slate-100 rounded-xl shadow-inner">
+              <FileText className="size-5 text-slate-600" />
+            </div>
             Últimas solicitudes
           </h2>
           <Link href="/admin/solicitudes">
-            <Button variant="ghost" size="sm" className="cursor-pointer">
+            <Button variant="ghost" className="font-bold text-slate-500 hover:text-blue-600 transition-colors rounded-xl h-10 px-4 group">
               Ver todas
-              <ArrowRight className="size-3" />
+              <ArrowRight className="size-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
         </div>
 
         {recientes.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-gray-400 text-sm">No hay solicitudes recientes.</p>
+          <div className="p-16 text-center bg-slate-50/50 m-4 rounded-2xl border border-dashed border-slate-200">
+            <p className="text-slate-500 font-medium">No hay transferencias ni solicitudes recientes registradas.</p>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Tipo de crédito</TableHead>
-                <TableHead className="text-right">Monto</TableHead>
-                <TableHead className="text-right">Cuota final</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recientes.map((s) => {
-                const badge = ESTADO_BADGES[s.estado] ?? { label: s.estado, color: 'bg-gray-100 text-gray-600' }
-                return (
-                  <TableRow key={s.id}>
-                    <TableCell className="font-medium">{s.usuario_nombre || 'Sin nombre'}</TableCell>
-                    <TableCell className="text-sm text-gray-600">{s.tipo_credito_nombre}</TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      ${s.monto?.toLocaleString() ?? '0'}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      ${s.cuota_final?.toFixed(2) ?? '0.00'}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-500">
-                      {new Date(s.created_at).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.color}`}>
-                        {badge.label}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+          <div className="p-2">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-100 hover:bg-transparent">
+                  <TableHead className="font-bold text-slate-500 py-4 px-6 rounded-l-xl">Cliente</TableHead>
+                  <TableHead className="font-bold text-slate-500">Producto Crediticio</TableHead>
+                  <TableHead className="text-right font-bold text-slate-500">Monto Capital</TableHead>
+                  <TableHead className="text-right font-bold text-slate-500">Cuota Base</TableHead>
+                  <TableHead className="font-bold text-slate-500">Radicación</TableHead>
+                  <TableHead className="font-bold text-slate-500 rounded-r-xl">Estatus</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recientes.map((s) => {
+                  const badge = ESTADO_BADGES[s.estado] ?? { label: s.estado, color: 'bg-slate-100 text-slate-600' }
+                  return (
+                    <TableRow key={s.id} className="border-slate-100/60 hover:bg-slate-50/80 transition-colors group">
+                      <TableCell className="font-bold text-slate-800 py-4 px-6">{s.usuario_nombre || 'Sin nombre'}</TableCell>
+                      <TableCell className="text-[15px] font-medium text-slate-600">{s.tipo_credito_nombre}</TableCell>
+                      <TableCell className="text-right font-mono text-[15px] font-semibold text-slate-700">
+                        ${s.monto?.toLocaleString() ?? '0'}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-[15px] font-semibold text-slate-700">
+                        ${s.cuota_final?.toFixed(2) ?? '0.00'}
+                      </TableCell>
+                      <TableCell className="text-sm font-medium text-slate-500">
+                        {new Date(s.created_at).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`text-[13px] px-3 py-1.5 rounded-full font-bold shadow-sm inline-block ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
     </div>
@@ -303,16 +315,23 @@ function MetricaCard({
   color: string
 }) {
   return (
-    <Card className="hover:scale-[1.02] transition-transform duration-300 shadow-sm border border-gray-100/50">
-      <CardContent className="p-5 flex items-center gap-4">
-        <div className="p-3 rounded-2xl shadow-sm transition-colors duration-300" style={{ backgroundColor: `${color}15`, color: color }}>
+    <Card className="bg-white/80 backdrop-blur-xl border border-slate-200/60 shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 hover:-translate-y-1 rounded-[2rem] overflow-hidden group">
+      <CardContent className="p-6 relative z-10 flex items-center gap-5">
+        <div 
+          className="p-4 rounded-2xl shadow-inner group-hover:scale-110 transition-transform duration-500" 
+          style={{ backgroundColor: `${color}15`, color: color }}
+        >
           {icon}
         </div>
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-500 mb-0.5">{label}</p>
-          <p className="text-3xl font-extrabold tracking-tight text-gray-900">{valor}</p>
+          <p className="text-[15px] font-bold text-slate-500 mb-1">{label}</p>
+          <p className="text-4xl font-black tracking-tight text-slate-800">{valor}</p>
         </div>
       </CardContent>
+      <div 
+        className="absolute bottom-0 left-0 h-1 w-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{ backgroundColor: color }}
+      />
     </Card>
   )
 }

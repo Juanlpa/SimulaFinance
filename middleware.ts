@@ -38,8 +38,15 @@ export async function middleware(request: NextRequest) {
 
     const rol = perfil?.rol ?? 'cliente'
 
-    // Rutas de admin: solo admins
-    if (pathname.startsWith('/admin') && rol !== 'admin') {
+    // Rutas de superadmin: solo superadmin
+    if (pathname.startsWith('/superadmin') && rol !== 'superadmin') {
+      const url = request.nextUrl.clone()
+      url.pathname = rol === 'admin' ? '/admin/dashboard' : '/cliente/dashboard'
+      return NextResponse.redirect(url)
+    }
+
+    // Rutas de admin: admin o superadmin
+    if (pathname.startsWith('/admin') && rol !== 'admin' && rol !== 'superadmin') {
       const url = request.nextUrl.clone()
       url.pathname = '/cliente/dashboard'
       return NextResponse.redirect(url)
@@ -48,7 +55,9 @@ export async function middleware(request: NextRequest) {
     // Si está en login/registro pero ya tiene sesión → redirigir según rol
     if (pathname === '/login' || pathname === '/registro') {
       const url = request.nextUrl.clone()
-      url.pathname = rol === 'admin' ? '/admin/dashboard' : '/cliente/dashboard'
+      url.pathname = rol === 'superadmin'
+        ? '/superadmin/dashboard'
+        : rol === 'admin' ? '/admin/dashboard' : '/cliente/dashboard'
       return NextResponse.redirect(url)
     }
   }

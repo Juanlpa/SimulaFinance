@@ -25,6 +25,7 @@ interface SolCredito {
   cuota_final: number; estado: string; observaciones_admin: string | null
   usuario_nombre: string; usuario_cedula: string; tipo_credito_nombre: string
   cedula_url: string | null; selfie_url: string | null
+  buro_score: { puntaje: number; categoria: 'apto' | 'observado' | 'no_apto' } | null
 }
 
 interface SolInversion {
@@ -84,7 +85,7 @@ export default function SolicitudesPage() {
 
     let q = supabase
       .from('solicitudes_credito')
-      .select('id, created_at, monto, plazo_meses, cuota_final, estado, observaciones_admin, cedula_url, selfie_url, usuarios(nombre, apellido, cedula), tipos_credito(nombre)')
+      .select('id, created_at, monto, plazo_meses, cuota_final, estado, observaciones_admin, cedula_url, selfie_url, buro_score, usuarios(nombre, apellido, cedula), tipos_credito(nombre)')
       .order('created_at', { ascending: false })
 
     if (filtroCredito !== 'todos') q = q.eq('estado', filtroCredito)
@@ -105,6 +106,7 @@ export default function SolicitudesPage() {
       tipo_credito_nombre: s.tipos_credito?.nombre ?? '—',
       cedula_url: s.cedula_url,
       selfie_url: s.selfie_url,
+      buro_score: s.buro_score ?? null,
     })))
     setLoading(false)
   }, [filtroCredito])
@@ -154,29 +156,57 @@ export default function SolicitudesPage() {
       return
     }
     setGuardando(true)
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('solicitudes_credito')
-      .update({ estado: nuevoEstado, observaciones_admin: observaciones.trim() || null })
-      .eq('id', dialogCredito.id)
 
-    if (error) { toast.error('Error al actualizar.') }
-    else { toast.success(`Solicitud ${nuevoEstado}.`); setDialogCredito(null); cargarCreditos() }
+    if (nuevoEstado === 'aprobada') {
+      // Usar API que genera contrato PDF y envía email
+      try {
+        const res = await fetch('/api/admin/aprobar-credito', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ solicitudId: dialogCredito.id, observaciones: observaciones.trim() || undefined }),
+        })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error ?? 'Error al aprobar')
+        toast.success('Solicitud aprobada. Se generó el contrato y se notificó al cliente.')
+        setDialogCredito(null)
+        cargarCreditos()
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Error al aprobar')
+      }
+    } else {
+      // Rechazo: actualización directa
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('solicitudes_credito')
+        .update({ estado: nuevoEstado, observaciones_admin: observaciones.trim() || null })
+        .eq('id', dialogCredito.id)
+
+      if (error) { toast.error('Error al actualizar.') }
+      else { toast.success(`Solicitud ${nuevoEstado}.`); setDialogCredito(null); cargarCreditos() }
+    }
+
     setGuardando(false)
   }
 
   const cambiarEstadoInversion = async (nuevoEstado: string) => {
     if (!dialogInversion) return
     setGuardando(true)
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('solicitudes_inversion')
-      .update({ estado: nuevoEstado })
-      .eq('id', dialogInversion.id)
-
-    if (error) { toast.error('Error al actualizar.') }
-    else { toast.success(`Inversión ${nuevoEstado}.`); setDialogInversion(null); cargarInversiones() }
-    setGuardando(false)
+    try {
+      const res = await fetch('/api/admin/gestionar-inversion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ solicitudId: dialogInversion.id, nuevoEstado }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Error al actualizar')
+      toast.success(`Inversión ${nuevoEstado === 'activa' ? 'aprobada y activada' : nuevoEstado}.`)
+      setDialogInversion(null)
+      cargarInversiones()
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al actualizar')
+    } finally {
+      setGuardando(false)
+    }
   }
 
   // ── Helpers UI ─────────────────────────────────────────────
@@ -379,6 +409,19 @@ export default function SolicitudesPage() {
                     {LABEL[dialogCredito.estado] ?? dialogCredito.estado}
                   </span>
                 </p>
+                {dialogCredito.buro_score && (
+                  <p><span className="font-medium">SimulaScore®:</span>{' '}
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                      dialogCredito.buro_score.categoria === 'apto' ? 'bg-green-100 text-green-700' :
+                      dialogCredito.buro_score.categoria === 'observado' ? 'bg-amber-100 text-amber-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {dialogCredito.buro_score.categoria === 'apto' ? 'Apto' :
+                       dialogCredito.buro_score.categoria === 'observado' ? 'Observado' : 'No apto'}
+                      {' '}({dialogCredito.buro_score.puntaje}/100)
+                    </span>
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">

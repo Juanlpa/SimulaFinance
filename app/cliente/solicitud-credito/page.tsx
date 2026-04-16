@@ -11,19 +11,22 @@ import { toast } from 'sonner'
 
 import { FormularioDatosPersonales } from '@/components/solicitud/FormularioDatosPersonales'
 import { Analisisfinanciero } from '@/components/solicitud/AnalisisFinanciero'
+import { SimulaScore } from '@/components/solicitud/SimulaScore'
 import { DocumentUploader } from '@/components/solicitud/DocumentUploader'
 import { ValidacionBiometrica } from '@/components/solicitud/ValidacionBiometrica'
 import { ResumenSolicitud } from '@/components/solicitud/ResumenSolicitud'
 
 import { Loader2, CheckCircle2, ChevronRight } from 'lucide-react'
+import type { BuroScore } from '@/types'
 
 // --- Definición de Pasos ---
 const PASOS = [
   { id: 1, nombre: 'Datos Personales', icono: '1' },
   { id: 2, nombre: 'Análisis Financiero', icono: '2' },
-  { id: 3, nombre: 'Documentación', icono: '3' },
-  { id: 4, nombre: 'Biometría', icono: '4' },
-  { id: 5, nombre: 'Confirmación', icono: '5' },
+  { id: 3, nombre: 'SimulaScore', icono: '3' },
+  { id: 4, nombre: 'Documentación', icono: '4' },
+  { id: 5, nombre: 'Biometría', icono: '5' },
+  { id: 6, nombre: 'Confirmación', icono: '6' },
 ]
 
 function SolicitudCreditoContent() {
@@ -40,6 +43,7 @@ function SolicitudCreditoContent() {
   const [simulacion, setSimulacion] = useState<any>(null)
   const [usuario, setUsuario] = useState<any>(null)
   const [cedulaUrlLocal, setCedulaUrlLocal] = useState<string | null>(null)
+  const [analisisData, setAnalisisData] = useState<any>(null)
 
   // 1. Cargar datos iniciales
   useEffect(() => {
@@ -142,7 +146,8 @@ function SolicitudCreditoContent() {
         .eq('id', solicitud.id)
 
       setSolicitud({ ...solicitud, analisis_financiero_id: ana.id })
-      setPaso(3)
+      setAnalisisData(analisis)
+      setPaso(3) // → SimulaScore
     } catch (err) {
       toast.error('Error al guardar análisis financiero')
       console.error(err)
@@ -151,7 +156,18 @@ function SolicitudCreditoContent() {
     }
   }
 
-  // 4. Guardar documentos (Step 3)
+  // 3.5. Guardar SimulaScore y avanzar a documentos
+  const handlePasoScore = async (score: BuroScore) => {
+    const supabase = createClient()
+    if (solicitud?.id) {
+      await supabase.from('solicitudes_credito')
+        .update({ buro_score: score })
+        .eq('id', solicitud.id)
+    }
+    setPaso(4)
+  }
+
+  // 4. Guardar documentos (Step 4)
   const handlePaso3 = async (docsMapa: Record<string, string>, localUrls: Record<string, string>) => {
     setProcesando(true)
     const supabase = createClient()
@@ -169,7 +185,7 @@ function SolicitudCreditoContent() {
       const cedulaLocal = Object.entries(localUrls).find(([k]) => k.toLowerCase().includes('céd') || k.toLowerCase().includes('cedula'))
       setCedulaUrlLocal(cedulaLocal?.[1] ?? null)
 
-      setPaso(4)
+      setPaso(5)
     } catch (err) {
       toast.error('Error al procesar documentos')
       console.error(err)
@@ -178,7 +194,7 @@ function SolicitudCreditoContent() {
     }
   }
 
-  // 5. Selfie (Step 4) — usa /api/upload para evitar restricciones RLS
+  // 5. Selfie (Step 5) — usa /api/upload para evitar restricciones RLS
   const handlePaso4 = async (selfieBlob: Blob) => {
     setProcesando(true)
 
@@ -199,7 +215,7 @@ function SolicitudCreditoContent() {
         estado: 'en_revision'
       }).eq('id', solicitud.id)
 
-      setPaso(5)
+      setPaso(6)
     } catch (err) {
       toast.error('Error al guardar validación biométrica')
       console.error(err)
@@ -208,7 +224,7 @@ function SolicitudCreditoContent() {
     }
   }
 
-  // 6. Confirmación Final (Step 5)
+  // 6. Confirmación Final (Step 6)
   const handleConfirmar = async () => {
     setProcesando(true)
     try {
@@ -285,7 +301,7 @@ function SolicitudCreditoContent() {
           ))}
         </div>
         <div className="pt-4">
-          <Progress value={(paso / 5) * 100} className="h-1 bg-gray-100" />
+          <Progress value={(paso / 6) * 100} className="h-1 bg-gray-100" />
         </div>
       </div>
 
@@ -300,35 +316,48 @@ function SolicitudCreditoContent() {
           />
         )}
         {paso === 2 && (
-          <Analisisfinanciero 
+          <Analisisfinanciero
             cuotaMensualSimulada={simulacion?.cuota_final || 0}
             onBack={() => setPaso(1)}
             onNext={handlePaso2}
             loading={procesando}
           />
         )}
-        {paso === 3 && (
-          <DocumentUploader 
+        {paso === 3 && analisisData && (
+          <SimulaScore
+            analisis={{
+              ingresos_mensuales: analisisData.ingresos,
+              gastos_mensuales: analisisData.gastos,
+              otros_creditos_cuota: analisisData.otrasCuotas,
+              patrimonio: analisisData.patrimonio,
+            }}
+            cuotaNueva={simulacion?.cuota_final || 0}
+            onContinuar={handlePasoScore}
+            onAtras={() => setPaso(2)}
+          />
+        )}
+        {paso === 4 && (
+          <DocumentUploader
             solicitudId={solicitud?.id}
             tipoCreditoId={simulacion?.tipo_credito_id}
-            onBack={() => setPaso(2)}
+            onBack={() => setPaso(3)}
             onNext={handlePaso3}
             loading={procesando}
           />
         )}
-        {paso === 4 && (
-          <ValidacionBiometrica 
+        {paso === 5 && (
+          <ValidacionBiometrica
             cedulaUrl={cedulaUrlLocal}
-            onBack={() => setPaso(3)}
+            onBack={() => setPaso(4)}
             onNext={handlePaso4}
             loading={procesando}
           />
         )}
-        {paso === 5 && (
-          <ResumenSolicitud 
+        {paso === 6 && (
+          <ResumenSolicitud
             data={{
               personales: usuario,
-              financieros: {}, // Se podría expandir
+              financieros: {},
               tipoCredito: simulacion?.tipos_credito?.nombre,
               subtipoCredito: simulacion?.subtipo_credito?.nombre,
               monto: simulacion?.monto,
@@ -336,7 +365,7 @@ function SolicitudCreditoContent() {
               cuotaFinal: simulacion?.cuota_final,
               sistema: simulacion?.sistema_amortizacion
             }}
-            onBack={() => setPaso(4)}
+            onBack={() => setPaso(5)}
             onConfirm={handleConfirmar}
             loading={procesando}
           />

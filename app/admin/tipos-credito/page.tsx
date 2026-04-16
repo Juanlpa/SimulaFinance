@@ -51,7 +51,28 @@ import {
   Save,
   ToggleLeft,
   ToggleRight,
+  Info,
 } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import type { CategoriaCredito } from '@/types'
+
+const CATEGORIAS_CREDITO: { value: CategoriaCredito; label: string }[] = [
+  { value: 'hipotecario', label: 'Hipotecario / Vivienda' },
+  { value: 'vehicular', label: 'Vehicular' },
+  { value: 'consumo', label: 'Consumo' },
+  { value: 'microcredito', label: 'Microcrédito' },
+  { value: 'educativo', label: 'Educativo' },
+  { value: 'otro', label: 'Otro' },
+]
+
+const SEGUROS_POR_CATEGORIA: Record<CategoriaCredito, string> = {
+  hipotecario: 'Seguro de desgravamen + Seguro de incendios y terremotos (obligatorios por ley para créditos hipotecarios)',
+  vehicular:   'Seguro de desgravamen + Seguro del vehículo (obligatorios para créditos vehiculares)',
+  consumo:     'Seguro de desgravamen (obligatorio para créditos de consumo)',
+  microcredito:'Seguro de desgravamen (obligatorio para microcréditos)',
+  educativo:   'Seguro de desgravamen (recomendado)',
+  otro:        'Verifica con el área de seguros los cobros aplicables.',
+}
 
 interface TipoCreditoConSubtipos extends TipoCredito {
   subtipos_credito?: SubtipoCredito[]
@@ -62,6 +83,7 @@ const tipoVacio = {
   nombre: '',
   segmento_bce: '',
   tasa_interes_anual: 0,
+  categoria: 'consumo' as CategoriaCredito,
   descripcion: '',
   requiere_ruc: false,
   activo: true,
@@ -153,6 +175,7 @@ export default function TiposCreditoPage() {
       nombre: tipo.nombre,
       segmento_bce: tipo.segmento_bce,
       tasa_interes_anual: tipo.tasa_interes_anual,
+      categoria: tipo.categoria ?? 'consumo',
       descripcion: tipo.descripcion ?? '',
       requiere_ruc: tipo.requiere_ruc,
       activo: tipo.activo,
@@ -182,6 +205,7 @@ export default function TiposCreditoPage() {
       nombre: formTipo.nombre.trim(),
       segmento_bce: formTipo.segmento_bce,
       tasa_interes_anual: formTipo.tasa_interes_anual,
+      categoria: formTipo.categoria,
       descripcion: formTipo.descripcion.trim() || null,
       requiere_ruc: formTipo.requiere_ruc,
       activo: formTipo.activo,
@@ -331,6 +355,7 @@ export default function TiposCreditoPage() {
               <TableRow>
                 <TableHead className="w-8" />
                 <TableHead>Nombre</TableHead>
+                <TableHead>Categoría</TableHead>
                 <TableHead>Segmento BCE</TableHead>
                 <TableHead className="text-right">Tasa %</TableHead>
                 <TableHead className="text-center">Subtipos</TableHead>
@@ -349,6 +374,11 @@ export default function TiposCreditoPage() {
                         {isExpanded ? <ChevronDown className="size-4 text-gray-400" /> : <ChevronRight className="size-4 text-gray-400" />}
                       </TableCell>
                       <TableCell className="font-medium">{tipo.nombre}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {CATEGORIAS_CREDITO.find(c => c.value === tipo.categoria)?.label ?? tipo.categoria ?? '—'}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-sm text-gray-600">{tipo.segmento_bce}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{tipo.tasa_interes_anual}%</TableCell>
                       <TableCell className="text-center">
@@ -374,7 +404,7 @@ export default function TiposCreditoPage() {
                     {/* Panel expandido: subtipos */}
                     {isExpanded && (
                       <TableRow key={`${tipo.id}-sub`}>
-                        <TableCell colSpan={7} className="bg-gray-50/50 p-4">
+                        <TableCell colSpan={8} className="bg-gray-50/50 p-4">
                           <div className="flex items-center justify-between mb-3">
                             <p className="text-sm font-medium text-gray-700">Subtipos de «{tipo.nombre}»</p>
                             <Button variant="outline" size="sm" onClick={() => abrirCrearSubtipo(tipo.id)} className="cursor-pointer">
@@ -449,6 +479,31 @@ export default function TiposCreditoPage() {
                 placeholder="Crédito de consumo"
                 className="h-10"
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Categoría *</Label>
+              <Select
+                value={formTipo.categoria}
+                onValueChange={(v) => setFormTipo({ ...formTipo, categoria: v as CategoriaCredito })}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Seleccionar categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIAS_CREDITO.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formTipo.categoria && (
+                <Alert className="mt-1 py-2 bg-blue-50 border-blue-200">
+                  <Info className="size-3.5 text-blue-500" />
+                  <AlertDescription className="text-xs text-blue-700 ml-1">
+                    <strong>Seguros recomendados:</strong> {SEGUROS_POR_CATEGORIA[formTipo.categoria]}
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
 
             <div className="space-y-1.5">

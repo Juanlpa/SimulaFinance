@@ -131,13 +131,15 @@ export async function generarTablaPDF(config: ConfigPDF): Promise<void> {
 
     autoTable(doc, {
       startY: y,
-      head: [['Cobro', 'Tipo', 'Valor config.', 'Total crédito', 'Mensual por cuota']],
+      head: [['Cobro', 'Tipo', 'Valor config.', 'Total crédito', 'Mensual / cuota']],
       body: cobros_desglose.map((c: CobroDesglose) => [
         c.nombre,
         c.tipo_cobro === 'porcentaje' ? `${c.valor_configurado}%` : 'Fijo',
         c.tipo_cobro === 'porcentaje' ? `${c.valor_configurado}%` : `$${c.valor_configurado.toFixed(2)}`,
         `$${c.total.toFixed(2)}`,
-        `$${c.mensual.toFixed(2)}`,
+        c.es_desgravamen && c.mensual_inicial != null && c.mensual_final != null
+          ? `$${c.mensual_inicial.toFixed(2)} → $${c.mensual_final.toFixed(2)} (variable)`
+          : `$${c.mensual.toFixed(2)} (fijo)`,
       ]),
       theme: 'striped',
       styles: { fontSize: 8 },

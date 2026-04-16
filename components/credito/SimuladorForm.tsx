@@ -36,9 +36,10 @@ export interface ParamsSimulador {
 interface SimuladorFormProps {
   onCalcular: (params: ParamsSimulador) => void
   loading: boolean
+  institucionId?: string
 }
 
-export function SimuladorForm({ onCalcular, loading }: SimuladorFormProps) {
+export function SimuladorForm({ onCalcular, loading, institucionId }: SimuladorFormProps) {
   // Datos cargados
   const [tipos, setTipos] = useState<TipoCredito[]>([])
   const [subtipos, setSubtipos] = useState<SubtipoCredito[]>([])
@@ -72,21 +73,25 @@ export function SimuladorForm({ onCalcular, loading }: SimuladorFormProps) {
   useEffect(() => {
     (async () => {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      let instId = institucionId
+      if (!instId) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
 
-      const { data: perfil } = await supabase
-        .from('usuarios')
-        .select('institucion_id')
-        .eq('id', user.id)
-        .single()
+        const { data: perfil } = await supabase
+          .from('usuarios')
+          .select('institucion_id')
+          .eq('id', user.id)
+          .single()
 
-      if (!perfil?.institucion_id) { setCargandoTipos(false); return }
+        if (!perfil?.institucion_id) { setCargandoTipos(false); return }
+        instId = perfil.institucion_id
+      }
 
       const { data } = await supabase
         .from('tipos_credito')
         .select('*')
-        .eq('institucion_id', perfil.institucion_id)
+        .eq('institucion_id', instId)
         .eq('activo', true)
         .order('nombre')
 

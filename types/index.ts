@@ -17,12 +17,13 @@ export interface Institucion {
   email: string | null
   sitio_web: string | null
   ruc_institucion: string | null
+  slug: string | null
   created_at: string
   updated_at: string
 }
 
 // ─── Usuarios ────────────────────────────────────────────────
-export type RolUsuario = 'admin' | 'cliente'
+export type RolUsuario = 'superadmin' | 'admin' | 'cliente'
 
 export interface Usuario {
   id: string
@@ -55,12 +56,15 @@ export interface TasaReferencia {
 }
 
 // ─── Tipos de crédito ────────────────────────────────────────
+export type CategoriaCredito = 'hipotecario' | 'vehicular' | 'consumo' | 'microcredito' | 'educativo' | 'otro'
+
 export interface TipoCredito {
   id: string
   institucion_id: string
   nombre: string
   segmento_bce: string       // nombre del segmento BCE correspondiente
   tasa_interes_anual: number // debe ser <= tasa_maxima del segmento
+  categoria: CategoriaCredito
   descripcion: string | null
   requiere_ruc: boolean
   activo: boolean
@@ -99,6 +103,7 @@ export interface CobroIndirecto {
   obligatorio: boolean
   es_global: boolean              // true = aplica a todos los créditos
   es_solca: boolean               // true = lógica especial de proporcionalidad
+  es_desgravamen: boolean         // true = calcular por saldo insoluto (variable por fila)
   created_at: string
 }
 
@@ -146,8 +151,11 @@ export interface CobroDesglose {
   tipo_cobro: TipoCobro
   valor_configurado: number
   base_calculo: BaseCalculo
-  total: number    // monto total para todo el crédito
-  mensual: number  // total / plazo_meses (valor fijo en cada cuota)
+  total: number               // monto total para todo el crédito
+  mensual: number             // fijo: valor/mes. desgravamen: promedio
+  es_desgravamen: boolean     // true = valor variable que decrece con el saldo
+  mensual_inicial: number | null  // primer mes (solo si es_desgravamen)
+  mensual_final: number | null    // último mes (solo si es_desgravamen)
 }
 
 export interface ResumenCredito {
@@ -187,6 +195,19 @@ export interface Simulacion {
   created_at: string
 }
 
+// ─── SimulaScore (buró de crédito simulado) ──────────────────
+export interface BuroScore {
+  puntaje: number           // 0-100
+  categoria: 'apto' | 'observado' | 'no_apto'
+  detalle: {
+    ratio_endeudamiento: number   // porcentaje (0-100)
+    capacidad_cubre_cuota: boolean
+    gastos_razonables: boolean
+    patrimonio_suficiente: boolean
+  }
+  evaluado_en: string       // ISO timestamp
+}
+
 // ─── Solicitudes de crédito ──────────────────────────────────
 export type EstadoSolicitudCredito =
   | 'pendiente'
@@ -220,6 +241,8 @@ export interface SolicitudCredito {
   cuota_maxima_sugerida: number | null
   motivo_rechazo: string | null
   observaciones_admin: string | null
+  contrato_url: string | null
+  buro_score: BuroScore | null
   created_at: string
   updated_at: string
   // Relaciones expandidas

@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
-import { Eye, EyeOff, Loader2, AlertCircle, LogIn, ShieldCheck, Zap } from 'lucide-react'
+import { Eye, EyeOff, Loader2, AlertCircle, LogIn, ShieldCheck, Zap, Calculator } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -79,74 +79,75 @@ export default function LoginPage() {
   const logoInicial = logoNombre.charAt(0).toUpperCase()
 
   return (
-    <main className="min-h-screen flex w-full bg-white relative">
-      {/* Lado Izquierdo: Formulario */}
-      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:w-1/2 lg:px-20 xl:px-24">
-        <div className="mx-auto w-full max-w-sm lg:w-96 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <div>
-            {/* Logo Logo Institucional Clásico (Fallback a inicial) */}
-            <div className="flex items-center gap-3 mb-8">
+    <main className="min-h-screen flex w-full bg-slate-50 relative selection:bg-blue-500/30">
+      {/* Lado Izquierdo: Formulario Mejorado */}
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:w-1/2 lg:px-20 xl:px-24 bg-white/40 backdrop-blur-3xl z-10 shadow-[20px_0_60px_rgba(0,0,0,0.02)]">
+        <div className="mx-auto w-full max-w-md lg:w-[420px] animate-in fade-in slide-in-from-left-8 duration-1000 ease-out">
+          <div className="bg-white p-10 rounded-[2.5rem] shadow-[0_8px_40px_rgb(0,0,0,0.04)] border border-slate-100/50">
+            {/* Logo e Identidad Institucional */}
+            <div className="flex items-center gap-4 mb-10 w-full justify-center">
               {institucion?.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={institucion.logo_url}
                   alt={logoNombre}
-                  className="h-10 w-auto rounded-lg object-contain shadow-sm"
+                  className="h-12 w-auto rounded-xl object-contain drop-shadow-sm"
                 />
               ) : (
                 <div 
-                  className="size-10 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md"
+                  className="size-12 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg ring-4 ring-slate-50"
                   style={{ backgroundColor: 'var(--color-inst-primary)' }}
                 >
                   {logoInicial}
                 </div>
               )}
-              <span className="font-bold text-2xl tracking-tight text-gray-900">{logoNombre}</span>
             </div>
             
-            <h2 className="mt-8 text-3xl font-extrabold text-gray-900 tracking-tight">
-              Bienvenido de nuevo
-            </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              Ingresa tus credenciales para acceder a tu panel financiero.
-            </p>
-          </div>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
+                Bienvenido
+              </h2>
+              <p className="text-[15px] text-slate-500 font-medium">
+                Accede a tu plataforma financiera {logoNombre}.
+              </p>
+            </div>
 
-          <div className="mt-8">
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <Alert variant="destructive" className="animate-in fade-in zoom-in-95 duration-300 border-red-200 bg-red-50 text-red-800">
-                  <AlertCircle className="size-4" />
-                  <AlertDescription className="font-medium">{error}</AlertDescription>
+                <Alert variant="destructive" className="animate-in fade-in zoom-in-95 duration-500 ease-out border-red-200 bg-red-50 text-red-800 rounded-2xl shadow-sm">
+                  <AlertCircle className="size-5" />
+                  <AlertDescription className="font-semibold text-sm">{error}</AlertDescription>
                 </Alert>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="login-email" className="text-gray-700">Correo electrónico</Label>
-                <Input
-                  id="login-email"
-                  type="email"
-                  placeholder="ejemplo@correo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  disabled={loading}
-                  className="h-11 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 transition-all shadow-sm"
-                  style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
-                />
+              <div className="space-y-2.5">
+                <Label htmlFor="login-email" className="text-slate-700 font-semibold ml-1 text-sm">Correo electrónico</Label>
+                <div className="relative">
+                  <Input
+                    id="login-email"
+                    type="email"
+                    placeholder="ejemplo@correo.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    disabled={loading}
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 transition-all shadow-inner text-base"
+                    style={{ '--tw-ring-color': 'rgba(59, 130, 246, 0.15)', '--tw-border-color': 'var(--color-inst-accent)' } as any}
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="login-password" className="text-gray-700">Contraseña</Label>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between ml-1">
+                  <Label htmlFor="login-password" className="text-slate-700 font-semibold text-sm">Contraseña</Label>
                   <Link
                     href="/reset-password"
-                    className="text-xs font-semibold transition-colors hover:underline"
-                    style={{ color: 'var(--color-inst-accent)' }}
+                    className="text-[13px] font-bold transition-all hover:underline decoration-2 underline-offset-4"
+                    style={{ color: 'var(--color-inst-primary)' }}
                     tabIndex={-1}
                   >
-                    ¿Olvidaste tu contraseña?
+                    ¿Olvidaste tu clave?
                   </Link>
                 </div>
                 <div className="relative">
@@ -159,16 +160,16 @@ export default function LoginPage() {
                     required
                     autoComplete="current-password"
                     disabled={loading}
-                    className="h-11 pr-10 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 transition-all shadow-sm"
-                    style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                    className="h-12 pr-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 transition-all shadow-inner text-base tracking-widest placeholder:tracking-normal"
+                    style={{ '--tw-ring-color': 'rgba(59, 130, 246, 0.15)', '--tw-border-color': 'var(--color-inst-accent)' } as any}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer rounded-xl hover:bg-slate-100"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
+                    {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
                   </button>
                 </div>
               </div>
@@ -176,26 +177,26 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={loading || !email || !password}
-                className="w-full h-11 mt-2 text-[15px] font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl rounded-lg group"
+                className="w-full h-12 mt-4 text-base font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.15)] hover:shadow-[0_12px_25px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-0.5 rounded-2xl group border border-black/10"
                 style={{ backgroundColor: 'var(--color-inst-primary)' }}
               >
                 {loading ? (
-                  <Loader2 className="size-5 animate-spin" />
+                  <Loader2 className="size-6 animate-spin" />
                 ) : (
-                  <>
-                    Iniciar sesión
-                    <LogIn className="size-4 ml-2 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                  </>
+                  <span className="flex items-center justify-center">
+                    Ingresar
+                    <LogIn className="size-5 ml-2 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  </span>
                 )}
               </Button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-gray-100">
-              <p className="text-center text-sm text-gray-600">
-                ¿No tienes una cuenta aún?{' '}
+            <div className="mt-8 pt-8 border-t border-slate-100">
+              <p className="text-center text-[15px] text-slate-600 font-medium">
+                ¿No tienes una cuenta?{' '}
                 <Link
                   href="/registro"
-                  className="font-bold hover:underline transition-colors ml-1"
+                  className="font-extrabold hover:underline transition-all ml-1 underline-offset-4 decoration-2"
                   style={{ color: 'var(--color-inst-primary)' }}
                 >
                   Regístrate ahora
@@ -207,38 +208,45 @@ export default function LoginPage() {
       </div>
 
       {/* Lado Derecho: Arte Visual / Brand */}
-      <div className="hidden lg:block relative w-0 flex-1 bg-gray-900 overflow-hidden">
+      <div className="hidden lg:flex relative w-0 flex-1 bg-slate-900 overflow-hidden items-center justify-center">
         {/* Fondo Base con gradiente dinámica */}
         <div 
-          className="absolute inset-0 opacity-90 transition-colors duration-1000"
+          className="absolute inset-0 opacity-100 transition-colors duration-1000"
           style={{ 
              background: `linear-gradient(135deg, var(--color-inst-primary) 0%, var(--color-inst-secondary) 100%)`
           }}
         />
         
-        {/* Orbes decorativos estilo Glassmorphism */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full opacity-30 mix-blend-screen blur-[80px] bg-white animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[10%] w-[50%] h-[50%] rounded-full opacity-20 mix-blend-screen blur-[100px] bg-blue-300 animate-pulse" style={{ animationDelay: '2s' }}/>
+        {/* Capa de ruido sutil y radial */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.4)_100%)] mix-blend-overlay" />
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.02] mix-blend-overlay pointer-events-none" />
         
-        <div className="absolute inset-0 flex flex-col justify-center px-16 xl:px-24 text-white z-10">
-          <div className="max-w-xl animate-in fade-in slide-in-from-right-8 duration-1000 delay-150 fill-mode-both">
-            <h1 className="text-4xl xl:text-5xl font-bold tracking-tight mb-6 leading-tight">
-              Gestiona tus finanzas de manera inteligente.
+        {/* Orbes decorativos estilo Glassmorphism Premium */}
+        <div className="absolute top-[-5%] left-[-15%] w-[600px] h-[600px] rounded-full opacity-[0.15] mix-blend-screen blur-[120px] bg-blue-300 animate-pulse duration-[7000ms]" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[800px] h-[800px] rounded-full opacity-[0.1] mix-blend-screen blur-[150px] bg-purple-400 animate-pulse" style={{ animationDelay: '3s', animationDuration: '8s' }}/>
+        
+        <div className="relative z-10 flex flex-col justify-center px-16 xl:px-24 text-white w-full max-w-2xl">
+          <div className="animate-in fade-in slide-in-from-right-12 duration-1000 delay-200 fill-mode-both">
+            <div className="inline-block p-4 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl mb-8">
+              <Zap className="size-8 text-yellow-300 drop-shadow-[0_0_15px_rgba(253,224,71,0.5)]" />
+            </div>
+            <h1 className="text-5xl xl:text-6xl font-black tracking-tight mb-8 leading-[1.1] drop-shadow-lg">
+              El poder de decidir con <span className="text-transparent bg-clip-text bg-gradient-to-br from-white to-white/40">precisión.</span>
             </h1>
-            <p className="text-lg xl:text-xl text-white/80 mb-10 leading-relaxed font-light">
-              Calcula cuotas, solicita facilidades crediticias e invierte todo desde un único panel diseñado para tu comodidad.
+            <p className="text-xl xl:text-2xl text-white/80 mb-12 leading-relaxed font-light drop-shadow-sm">
+              Ingresa al ecosistema de SimulaFinance, el entorno donde cada cálculo cuenta.
             </p>
             
             <div className="grid grid-cols-2 gap-6">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-colors">
-                <ShieldCheck className="size-8 text-white/90 mb-3" />
-                <h3 className="font-semibold text-lg mb-1">Seguridad Criptográfica</h3>
-                <p className="text-sm text-white/70">Tus datos financieros están protegidos con RLS y Auth avanzado.</p>
+              <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.1)] hover:bg-white/10 hover:border-white/20 transition-all duration-300 group cursor-default">
+                <ShieldCheck className="size-10 text-emerald-400 mb-4 group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]" />
+                <h3 className="font-bold text-lg mb-2 text-white">Seguridad Bancaria</h3>
+                <p className="text-sm text-white/60 font-medium leading-relaxed">Tus datos financieros están encriptados y protegidos por RLS Auth.</p>
               </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-colors">
-                <Zap className="size-8 text-white/90 mb-3" />
-                <h3 className="font-semibold text-lg mb-1">Cálculos Ultrarrápidos</h3>
-                <p className="text-sm text-white/70">Simulaciones instantáneas ajustadas a la ley ecuatoriana.</p>
+              <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.1)] hover:bg-white/10 hover:border-white/20 transition-all duration-300 group cursor-default">
+                <Calculator className="size-10 text-blue-400 mb-4 group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(96,165,250,0.3)]" />
+                <h3 className="font-bold text-lg mb-2 text-white">Simulación Veloz</h3>
+                <p className="text-sm text-white/60 font-medium leading-relaxed">Calcula préstamos de inmediato en ecosistemas de cuota fija u ordinaria.</p>
               </div>
             </div>
           </div>

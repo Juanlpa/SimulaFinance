@@ -25,6 +25,23 @@ export function calcularCobrosIndirectos(
   plazoMeses: number
 ): CobroDesglose[] {
   return cobros.map((cobro) => {
+    // ── Caso especial: desgravamen variable ─────────────────
+    // El cálculo real lo hace generarTablaCompleta fila por fila
+    // Aquí solo retornamos un marcador con total=0
+    if (cobro.es_desgravamen) {
+      return {
+        nombre: cobro.nombre,
+        tipo_cobro: cobro.tipo_cobro,
+        valor_configurado: cobro.valor,
+        base_calculo: cobro.base_calculo,
+        total: 0,
+        mensual: 0,
+        es_desgravamen: true,
+        mensual_inicial: null,
+        mensual_final: null,
+      }
+    }
+
     // ── Paso 1: Calcular el total del cobro ──────────────────
     let total: number
 
@@ -62,6 +79,9 @@ export function calcularCobrosIndirectos(
       base_calculo: cobro.base_calculo,
       total,
       mensual,
+      es_desgravamen: false,
+      mensual_inicial: null,
+      mensual_final: null,
     }
   })
 }

@@ -64,14 +64,18 @@ export function ProtectedRoute({ children, rolRequerido }: ProtectedRouteProps) 
             return
           }
 
-          // Validación de jerarquía (admin puede entrar a todo)
-          const esAdmin = perfil.rol === 'admin'
-          const esClienteAutoalizado = perfil.rol === rolRequerido || (rolRequerido === 'cliente' && esAdmin)
+          // Jerarquía numérica: superadmin > admin > cliente
+          const JERARQUIA: Record<string, number> = { superadmin: 3, admin: 2, cliente: 1 }
+          const nivelUsuario = JERARQUIA[perfil.rol] ?? 0
+          const nivelRequerido = JERARQUIA[rolRequerido] ?? 1
+          const tieneAcceso = nivelUsuario >= nivelRequerido
 
-          if (!esClienteAutoalizado) {
+          if (!tieneAcceso) {
             toast.warning('No tienes permiso para acceder a esta sección.')
             if (mounted) {
-              router.push(esAdmin ? '/admin/dashboard' : '/cliente/dashboard')
+              if (perfil.rol === 'superadmin') router.push('/superadmin/dashboard')
+              else if (perfil.rol === 'admin') router.push('/admin/dashboard')
+              else router.push('/cliente/dashboard')
             }
             return
           }

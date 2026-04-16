@@ -167,11 +167,13 @@ export default function SimuladorInversionPage() {
               <Label>Producto de inversión</Label>
               <Select value={productoId} onValueChange={(v) => handleProductoChange(v ?? '')}>
                 <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Seleccionar producto" />
+                  <SelectValue placeholder="Seleccionar producto">
+                    {producto ? `${producto.nombre} (${producto.tasa_interes_anual}%)` : undefined}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {productos.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
+                    <SelectItem key={p.id} value={p.id} label={`${p.nombre} (${p.tasa_interes_anual}%)`}>
                       {p.nombre} ({p.tasa_interes_anual}%)
                     </SelectItem>
                   ))}

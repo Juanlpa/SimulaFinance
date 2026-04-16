@@ -153,18 +153,19 @@ export default function RegistroPage() {
 
   if (success) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 px-4 py-8">
-        <Card className="w-full max-w-sm shadow-lg border-0 ring-1 ring-black/5">
-          <CardContent className="pt-8 pb-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="size-8 text-green-600" />
+      <main className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-8 relative selection:bg-blue-500/30">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent pointer-events-none" />
+        <Card className="w-full max-w-sm shadow-[0_20px_60px_rgba(0,0,0,0.08)] border-0 ring-1 ring-slate-100 bg-white/80 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-700 ease-out z-10 rounded-[2rem]">
+          <CardContent className="pt-10 pb-8 text-center px-8">
+            <div className="w-20 h-20 rounded-full bg-emerald-50 border-4 border-white shadow-inner flex items-center justify-center mx-auto mb-6 relative">
+              <div className="absolute inset-0 rounded-full bg-emerald-400 opacity-20 animate-ping" />
+              <CheckCircle2 className="size-10 text-emerald-500 drop-shadow-sm" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">¡Cuenta creada!</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Revisa tu correo electrónico para confirmar tu cuenta.
-              Serás redirigido al login en unos segundos...
+            <h2 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">¡Cuenta creada!</h2>
+            <p className="text-[15px] text-slate-500 font-medium leading-relaxed mb-6">
+              Revisa tu correo electrónico para confirmar tu cuenta. Serás redirigido automáticamente...
             </p>
-            <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
+            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden shadow-inner">
               <div
                 className="h-full rounded-full transition-all duration-[3000ms] ease-linear"
                 style={{
@@ -182,8 +183,8 @@ export default function RegistroPage() {
             `}</style>
             <Link
               href="/login"
-              className="inline-block mt-4 text-sm font-medium hover:underline"
-              style={{ color: 'var(--color-inst-accent)' }}
+              className="inline-block mt-6 text-[15px] font-bold transition-all hover:underline decoration-2 underline-offset-4"
+              style={{ color: 'var(--color-inst-primary)' }}
             >
               Ir al login ahora →
             </Link>
@@ -194,77 +195,79 @@ export default function RegistroPage() {
   }
 
   return (
-    <main className="min-h-screen flex w-full bg-white relative">
+    <main className="min-h-screen flex w-full bg-slate-50 relative selection:bg-blue-500/30">
       {/* Lado Izquierdo: Arte Visual / Brand */}
-      <div className="hidden lg:block relative w-0 flex-1 bg-gray-900 overflow-hidden">
+      <div className="hidden lg:flex relative w-0 flex-1 bg-slate-900 overflow-hidden items-center justify-center">
         {/* Fondo Base con gradiente dinámica */}
         <div 
-          className="absolute inset-0 opacity-90 transition-colors duration-1000"
+          className="absolute inset-0 opacity-100 transition-colors duration-1000"
           style={{ 
              background: `linear-gradient(135deg, var(--color-inst-secondary) 0%, var(--color-inst-primary) 100%)`
           }}
         />
         
-        {/* Orbes decorativos estilo Glassmorphism */}
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full opacity-30 mix-blend-screen blur-[80px] bg-white animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[10%] w-[50%] h-[50%] rounded-full opacity-20 mix-blend-screen blur-[100px] bg-blue-300 animate-pulse" style={{ animationDelay: '2s' }}/>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.4)_100%)] mix-blend-overlay" />
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.02] mix-blend-overlay pointer-events-none" />
         
-        <div className="absolute inset-0 flex flex-col justify-center px-16 xl:px-24 text-white z-10">
-          <div className="max-w-xl animate-in fade-in slide-in-from-left-8 duration-1000 delay-150 fill-mode-both">
-            <h1 className="text-4xl xl:text-5xl font-bold tracking-tight mb-6 leading-tight">
-              Tu futuro financiero comienza aquí.
+        {/* Orbes decorativos estilo Glassmorphism Premium */}
+        <div className="absolute top-[-5%] right-[-15%] w-[600px] h-[600px] rounded-full opacity-[0.15] mix-blend-screen blur-[120px] bg-blue-300 animate-pulse duration-[7000ms]" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[800px] h-[800px] rounded-full opacity-[0.1] mix-blend-screen blur-[150px] bg-purple-400 animate-pulse" style={{ animationDelay: '2s', animationDuration: '9s' }}/>
+        
+        <div className="relative z-10 flex flex-col justify-center px-16 xl:px-24 text-white w-full max-w-2xl">
+          <div className="animate-in fade-in slide-in-from-left-12 duration-1000 delay-150 fill-mode-both">
+            <h1 className="text-5xl xl:text-6xl font-black tracking-tight mb-8 leading-[1.1] drop-shadow-lg">
+              Tu futuro financiero <br /><span className="text-transparent bg-clip-text bg-gradient-to-br from-white to-white/40">comienza aquí.</span>
             </h1>
-            <p className="text-lg xl:text-xl text-white/80 mb-10 leading-relaxed font-light">
-              Únete a miles de usuarios que confían en nosotros para proyectar sus inversiones e hipotecas.
+            <p className="text-xl xl:text-2xl text-white/80 mb-12 leading-relaxed font-light drop-shadow-sm">
+              Únete a miles de analistas y clientes que proyectan sus inversiones e hipotecas con precisión absoluta.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Lado Derecho: Formulario */}
-      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:w-1/2 lg:px-20 xl:px-24 py-12 scrollbar-hide overflow-y-auto">
-        <div className="mx-auto w-full max-w-sm lg:w-[400px] animate-in fade-in slide-in-from-bottom-8 duration-700 pb-10">
-          <div>
-            <div className="flex items-center gap-3 mb-8">
+      {/* Lado Derecho: Formulario Estructurado Premium */}
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:w-[55%] xl:w-1/2 lg:px-16 xl:px-24 py-12 bg-white/40 backdrop-blur-3xl z-10 shadow-[-20px_0_60px_rgba(0,0,0,0.02)] overflow-y-auto scrollbar-hide">
+        <div className="mx-auto w-full max-w-md lg:w-[480px] animate-in fade-in slide-in-from-right-8 duration-1000 ease-out py-8">
+          <div className="bg-white p-10 rounded-[2.5rem] shadow-[0_8px_40px_rgb(0,0,0,0.04)] border border-slate-100/50">
+            <div className="flex items-center gap-4 mb-10 w-full justify-center">
               {institucion?.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={institucion.logo_url}
                   alt={logoNombre}
-                  className="h-10 w-auto rounded-lg object-contain shadow-sm"
+                  className="h-12 w-auto rounded-xl object-contain drop-shadow-sm"
                 />
               ) : (
                 <div 
-                  className="size-10 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md"
+                  className="size-12 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg ring-4 ring-slate-50"
                   style={{ backgroundColor: 'var(--color-inst-primary)' }}
                 >
                   {logoInicial}
                 </div>
               )}
-              <span className="font-bold text-2xl tracking-tight text-gray-900">{logoNombre}</span>
             </div>
             
-            <h2 className="mt-6 text-3xl font-extrabold text-gray-900 tracking-tight">
-              Crear cuenta
-            </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              Ingresa tus datos para empezar a cotizar.
-            </p>
-          </div>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
+                Crear cuenta
+              </h2>
+              <p className="text-[15px] text-slate-500 font-medium">
+                Ingresa tus datos para acceder a las simulaciones.
+              </p>
+            </div>
 
-          <div className="mt-8">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
-                <Alert variant="destructive" className="animate-in fade-in zoom-in-95 duration-300 border-red-200 bg-red-50 text-red-800">
-                  <AlertCircle className="size-4" />
-                  <AlertDescription className="font-medium">{error}</AlertDescription>
+                <Alert variant="destructive" className="animate-in fade-in zoom-in-95 duration-500 ease-out border-red-200 bg-red-50 text-red-800 rounded-2xl shadow-sm">
+                  <AlertCircle className="size-5" />
+                  <AlertDescription className="font-semibold text-sm">{error}</AlertDescription>
                 </Alert>
               )}
 
               {/* Nombre y Apellido */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="reg-nombre" className="text-gray-700">Nombre</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reg-nombre" className="text-slate-700 font-semibold ml-1 text-[13px]">Nombre</Label>
                   <Input
                     id="reg-nombre"
                     type="text"
@@ -276,16 +279,16 @@ export default function RegistroPage() {
                     }}
                     required
                     disabled={loading}
-                    className="h-11 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 shadow-sm"
-                    style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 transition-all shadow-inner text-base"
+                    style={{ '--tw-ring-color': 'rgba(59, 130, 246, 0.15)', '--tw-border-color': 'var(--color-inst-accent)' } as any}
                     aria-invalid={!!fieldErrors.nombre}
                   />
                   {fieldErrors.nombre && (
-                    <p className="text-xs text-destructive mt-0.5">{fieldErrors.nombre}</p>
+                    <p className="text-xs text-red-500 mt-1 font-medium ml-1">{fieldErrors.nombre}</p>
                   )}
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="reg-apellido" className="text-gray-700">Apellido</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="reg-apellido" className="text-slate-700 font-semibold ml-1 text-[13px]">Apellido</Label>
                   <Input
                     id="reg-apellido"
                     type="text"
@@ -297,19 +300,19 @@ export default function RegistroPage() {
                     }}
                     required
                     disabled={loading}
-                    className="h-11 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 shadow-sm"
-                    style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 transition-all shadow-inner text-base"
+                    style={{ '--tw-ring-color': 'rgba(59, 130, 246, 0.15)', '--tw-border-color': 'var(--color-inst-accent)' } as any}
                     aria-invalid={!!fieldErrors.apellido}
                   />
                   {fieldErrors.apellido && (
-                    <p className="text-xs text-destructive mt-0.5">{fieldErrors.apellido}</p>
+                    <p className="text-xs text-red-500 mt-1 font-medium ml-1">{fieldErrors.apellido}</p>
                   )}
                 </div>
               </div>
 
               {/* Email */}
-              <div className="space-y-1.5">
-                <Label htmlFor="reg-email" className="text-gray-700">Correo electrónico</Label>
+              <div className="space-y-2">
+                <Label htmlFor="reg-email" className="text-slate-700 font-semibold ml-1 text-sm">Correo electrónico</Label>
                 <Input
                   id="reg-email"
                   type="email"
@@ -322,18 +325,18 @@ export default function RegistroPage() {
                   required
                   autoComplete="email"
                   disabled={loading}
-                  className="h-11 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 shadow-sm"
-                  style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 transition-all shadow-inner text-base"
+                  style={{ '--tw-ring-color': 'rgba(59, 130, 246, 0.15)', '--tw-border-color': 'var(--color-inst-accent)' } as any}
                   aria-invalid={!!fieldErrors.email}
                 />
                 {fieldErrors.email && (
-                  <p className="text-xs text-destructive mt-0.5">{fieldErrors.email}</p>
+                  <p className="text-xs text-red-500 mt-1 font-medium ml-1">{fieldErrors.email}</p>
                 )}
               </div>
 
               {/* Contraseña */}
-              <div className="space-y-1.5">
-                <Label htmlFor="reg-password" className="text-gray-700">Contraseña</Label>
+              <div className="space-y-2">
+                <Label htmlFor="reg-password" className="text-slate-700 font-semibold ml-1 text-sm">Contraseña</Label>
                 <div className="relative">
                   <Input
                     id="reg-password"
@@ -347,37 +350,37 @@ export default function RegistroPage() {
                     required
                     autoComplete="new-password"
                     disabled={loading}
-                    className="h-11 pr-10 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 shadow-sm"
-                    style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                    className="h-12 pr-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 transition-all shadow-inner text-base tracking-widest placeholder:tracking-normal"
+                    style={{ '--tw-ring-color': 'rgba(59, 130, 246, 0.15)', '--tw-border-color': 'var(--color-inst-accent)' } as any}
                     aria-invalid={!!fieldErrors.password}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer rounded-xl hover:bg-slate-100"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
+                    {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
                   </button>
                 </div>
                 {password && (
-                  <div className="space-y-1 pt-1 opacity-80">
-                    <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
+                  <div className="space-y-1.5 pt-1.5 px-1 opacity-90">
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden shadow-inner">
                       <div
-                        className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
+                        className={`h-full rounded-full transition-all duration-500 ease-out shadow-sm ${strength.color}`}
                         style={{ width: strength.width }}
                       />
                     </div>
                   </div>
                 )}
                 {fieldErrors.password && (
-                  <p className="text-xs text-destructive mt-0.5">{fieldErrors.password}</p>
+                  <p className="text-xs text-red-500 mt-1 font-medium ml-1">{fieldErrors.password}</p>
                 )}
               </div>
 
               {/* Confirmar contraseña */}
-              <div className="space-y-1.5 pb-2">
-                <Label htmlFor="reg-confirm" className="text-gray-700">Confirmar contraseña</Label>
+              <div className="space-y-2 pb-2">
+                <Label htmlFor="reg-confirm" className="text-slate-700 font-semibold ml-1 text-sm">Confirmar contraseña</Label>
                 <div className="relative">
                   <Input
                     id="reg-confirm"
@@ -391,25 +394,25 @@ export default function RegistroPage() {
                     required
                     autoComplete="new-password"
                     disabled={loading}
-                    className="h-11 pr-10 rounded-lg border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 shadow-sm"
-                    style={{ '--tw-ring-color': 'var(--color-inst-accent)' } as any}
+                    className="h-12 pr-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 transition-all shadow-inner text-base tracking-widest placeholder:tracking-normal"
+                    style={{ '--tw-ring-color': 'rgba(59, 130, 246, 0.15)', '--tw-border-color': 'var(--color-inst-accent)' } as any}
                     aria-invalid={!!fieldErrors.confirmPassword}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer rounded-xl hover:bg-slate-100"
                     tabIndex={-1}
                   >
-                    {showConfirm ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
+                    {showConfirm ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
                   </button>
                 </div>
                 {confirmPassword && (
-                  <p className={`text-[11px] pt-1 flex items-center gap-1 font-medium ${password === confirmPassword ? 'text-green-600' : 'text-red-500'}`}>
+                  <p className={`text-[12px] pt-1.5 ml-1 flex items-center gap-1.5 font-bold ${password === confirmPassword ? 'text-emerald-500' : 'text-red-500'}`}>
                     {password === confirmPassword ? (
-                      <><CheckCircle2 className="size-3" /> Coinciden</>
+                      <><CheckCircle2 className="size-3.5" /> Coinciden correctamente</>
                     ) : (
-                      <><AlertCircle className="size-3" /> No coinciden</>
+                      <><AlertCircle className="size-3.5" /> Las contraseñas no coinciden</>
                     )}
                   </p>
                 )}
@@ -418,26 +421,26 @@ export default function RegistroPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-11 text-[15px] font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl rounded-lg group"
+                className="w-full h-12 mt-6 text-base font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.15)] hover:shadow-[0_12px_25px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-0.5 rounded-2xl group border border-black/10"
                 style={{ backgroundColor: 'var(--color-inst-primary)' }}
               >
                 {loading ? (
-                  <Loader2 className="size-5 animate-spin" />
+                  <Loader2 className="size-6 animate-spin" />
                 ) : (
-                  <>
+                  <span className="flex items-center justify-center">
                     Completar registro
-                    <UserPlus className="size-4 ml-2 opacity-70 group-hover:opacity-100 transition-all" />
-                  </>
+                    <UserPlus className="size-5 ml-2 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300" />
+                  </span>
                 )}
               </Button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-gray-100">
-              <p className="text-center text-sm text-gray-600">
+            <div className="mt-8 pt-8 border-t border-slate-100">
+              <p className="text-center text-[15px] text-slate-600 font-medium">
                 ¿Ya tienes cuenta?{' '}
                 <Link
                   href="/login"
-                  className="font-bold hover:underline transition-colors ml-1"
+                  className="font-extrabold hover:underline transition-all ml-1 underline-offset-4 decoration-2"
                   style={{ color: 'var(--color-inst-primary)' }}
                 >
                   Iniciar sesión

@@ -30,6 +30,12 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 // Configuración de ítems por rol
+const NAV_ITEMS_SUPERADMIN = [
+  { href: '/superadmin/dashboard',     label: 'Panel Global',    icon: LayoutDashboard },
+  { href: '/superadmin/instituciones', label: 'Instituciones',   icon: Building2 },
+  { href: '/superadmin/admins',        label: 'Administradores', icon: Users },
+]
+
 const NAV_ITEMS_ADMIN = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/institucion', label: 'Institución', icon: Building2 },
@@ -55,7 +61,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { institucion } = useInstitucion()
-  const [role, setRole] = useState<'admin' | 'cliente' | null>(null)
+  const [role, setRole] = useState<'superadmin' | 'admin' | 'cliente' | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -83,7 +89,8 @@ export function Sidebar() {
     }
   }
 
-  const items = role === 'admin' ? NAV_ITEMS_ADMIN : NAV_ITEMS_CLIENTE
+  const items = role === 'superadmin' ? NAV_ITEMS_SUPERADMIN
+    : role === 'admin' ? NAV_ITEMS_ADMIN : NAV_ITEMS_CLIENTE
 
   if (loading) return <aside className="w-64 min-h-screen border-r bg-gray-50/50" />
 
@@ -103,7 +110,7 @@ export function Sidebar() {
               {institucion?.nombre ?? 'SimulaFinance'}
             </p>
             <p className="text-white/50 text-[10px] uppercase tracking-widest font-medium">
-              Panel {role}
+              {role === 'superadmin' ? 'Super Admin' : `Panel ${role}`}
             </p>
           </div>
         </div>

@@ -21,48 +21,72 @@ export interface ResultadoTablaCompleta {
 /**
  * Genera la tabla de amortización completa:
  * 1. Calcula la tabla base (francesa o alemana)
- * 2. Calcula los cobros indirectos
- * 3. Agrega una columna por cobro a cada fila
- * 4. Calcula cuota_final = cuota_base + suma de cobros mensuales
- * 5. Calcula el resumen financiero total
+ * 2. Separa cobros fijos de cobros de desgravamen
+ * 3. Aplica cobros fijos uniformemente
+ * 4. Calcula desgravamen fila por fila sobre saldo insoluto
+ * 5. Recalcula cuota_final por fila
+ * 6. Calcula el resumen financiero total
  */
 export function generarTablaCompleta(params: ParamsTablaCompleta): ResultadoTablaCompleta {
   const { monto, plazo_meses, tasa_anual, sistema, cobros, valor_bien } = params
 
   // ── 1. Tabla base ─────────────────────────────────────────
-  const filasBase =
+  const filas: TablaAmortizacionRow[] = (
     sistema === 'francesa'
       ? calcularAmortizacionFrancesa({ monto, plazo_meses, tasa_anual })
       : calcularAmortizacionAlemana({ monto, plazo_meses, tasa_anual })
+  ).map(f => ({ ...f, cobros: {}, cuota_final: f.numero === 0 ? 0 : f.cuota_base }))
 
-  // ── 2. Cobros indirectos ──────────────────────────────────
-  const cobrosDesglose = calcularCobrosIndirectos(cobros, monto, valor_bien, plazo_meses)
-  const sumaCobrosmensuales = cobrosDesglose.reduce((acc, c) => acc + c.mensual, 0)
+  // ── 2. Separar cobros fijos de desgravamen ────────────────
+  const cobrosFijos      = cobros.filter(c => !c.es_desgravamen)
+  const cobrosDesgravamen = cobros.filter(c => c.es_desgravamen)
 
-  // ── 3 & 4. Agregar cobros a cada fila ────────────────────
-  const filas: TablaAmortizacionRow[] = filasBase.map((fila) => {
-    if (fila.numero === 0) {
-      // Fila inicial: solo saldo
-      return { ...fila, cobros: {}, cuota_final: 0 }
+  // ── 3. Cobros fijos: valor mensual uniforme ───────────────
+  const desgloses: CobroDesglose[] = calcularCobrosIndirectos(cobrosFijos, monto, valor_bien, plazo_meses)
+  const sumaFijosMensual = desgloses.reduce((s, c) => s + c.mensual, 0)
+
+  for (let i = 1; i < filas.length; i++) {
+    desgloses.forEach(c => { filas[i].cobros[c.nombre] = c.mensual })
+  }
+
+  // ── 4. Desgravamen: calculado fila por fila ───────────────
+  // saldo_inicio_mes_i = filas[i-1].saldo (balance ANTES del pago i)
+  const desglosesDes: CobroDesglose[] = cobrosDesgravamen.map(cobro => {
+    const tasaMensual = cobro.valor / 12 / 100
+    const valores: number[] = []
+
+    for (let i = 1; i < filas.length; i++) {
+      const val = redondear(filas[i - 1].saldo * tasaMensual)
+      filas[i].cobros[cobro.nombre] = val
+      valores.push(val)
     }
 
-    const cobrosMap: Record<string, number> = {}
-    cobrosDesglose.forEach((c) => {
-      cobrosMap[c.nombre] = c.mensual
-    })
-
+    const total = redondear(valores.reduce((s, v) => s + v, 0))
     return {
-      ...fila,
-      cobros: cobrosMap,
-      cuota_final: redondear(fila.cuota_base + sumaCobrosmensuales),
+      nombre: cobro.nombre,
+      tipo_cobro: cobro.tipo_cobro,
+      valor_configurado: cobro.valor,
+      base_calculo: cobro.base_calculo,
+      total,
+      mensual: redondear(total / plazo_meses),
+      es_desgravamen: true,
+      mensual_inicial: valores[0] ?? null,
+      mensual_final: valores[valores.length - 1] ?? null,
     }
   })
 
-  // ── 5. Resumen financiero ─────────────────────────────────
-  const filasReales = filas.filter((f) => f.numero > 0)
-  const totalCapital = redondear(filasReales.reduce((acc, f) => acc + f.capital, 0))
-  const totalIntereses = redondear(filasReales.reduce((acc, f) => acc + f.interes, 0))
-  const totalCobrosAdicionales = redondear(cobrosDesglose.reduce((acc, c) => acc + c.total, 0))
+  // ── 5. Recalcular cuota_final por fila ────────────────────
+  for (let i = 1; i < filas.length; i++) {
+    const sumaCobros = Object.values(filas[i].cobros).reduce((s, v) => s + v, 0)
+    filas[i].cuota_final = redondear(filas[i].cuota_base + sumaCobros)
+  }
+
+  // ── 6. Resumen financiero ─────────────────────────────────
+  const cobrosDesglose = [...desgloses, ...desglosesDes]
+  const filasReales = filas.filter(f => f.numero > 0)
+  const totalCapital = redondear(filasReales.reduce((s, f) => s + f.capital, 0))
+  const totalIntereses = redondear(filasReales.reduce((s, f) => s + f.interes, 0))
+  const totalCobrosAdicionales = redondear(cobrosDesglose.reduce((s, c) => s + c.total, 0))
 
   const resumen: ResumenCredito = {
     monto,

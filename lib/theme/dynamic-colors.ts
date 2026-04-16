@@ -85,7 +85,7 @@ export function generateCSSString(colores: ColoresInstitucion): string {
  * Colores por defecto (instituciones sin configurar)
  */
 export const COLORES_DEFAULT: ColoresInstitucion = {
-  primario: '#1a1a2e',
-  secundario: '#16213e',
-  acento: '#0f3460',
+  primario: '#0f172a',    // Slate 900 (Deep rich blue-gray)
+  secundario: '#1e293b',  // Slate 800
+  acento: '#3b82f6',      // Blue 500 (Vibrant accent)
 }
